@@ -13,7 +13,6 @@
 <meta name="apple-mobile-web-app-title" content="レゾナンス">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-<script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+1p:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
@@ -237,6 +236,7 @@ select,input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px so
 .stat{display:flex;justify-content:space-between;font-size:13px;border-top:1px solid var(--line);padding-top:6px}
 .badge2{display:inline-block;margin-left:6px;min-width:18px;padding:0 5px;border-radius:99px;background:var(--danger);color:#fff;font-size:11px}
 .codebox{display:flex;gap:6px}.codebox input{flex:1;font-size:12px;padding:8px}
+.savecode{width:100%;min-height:96px;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;color:inherit;word-break:break-all;resize:vertical;box-sizing:border-box}
 .sound{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin:6px 0}
 .sound .vol{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
 .sound input[type=range]{width:110px;accent-color:var(--gold)}
@@ -548,8 +548,70 @@ function storeSave(){try{localStorage.setItem(SKEY,JSON.stringify(SAVE));return 
 let SAVE=loadSave();storeSave();
 const owned=id=>SAVE.owned[id]||0;
 /* スターターの中身が変わったとき、足りないカードを配る（v0.37でマジックのスターターを変更） */
-(function topUpStarter(){const st=STARTERS.find(d=>d.id===SAVE.starter);if(!st)return;let ch=false;
-  for(const [id,n] of Object.entries(st.cards))if(owned(id)<n){SAVE.owned[id]=n;ch=true;}if(ch)storeSave();})();
+function topUpStarter(){const st=STARTERS.find(d=>d.id===SAVE.starter);if(!st)return;let ch=false;
+  for(const [id,n] of Object.entries(st.cards))if(owned(id)<n){SAVE.owned[id]=n;ch=true;}if(ch)storeSave();}
+topUpStarter();
+/* ===== データの引き継ぎコード（v0.39で追加） ===== */
+const B64U={enc:u=>{let t='';for(let i=0;i<u.length;i++)t+=String.fromCharCode(u[i]);return btoa(t).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');},
+  dec:t=>{t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';const b=atob(t),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;}};
+async function zipBytes(u,back){const cs=back?new DecompressionStream('deflate-raw'):new CompressionStream('deflate-raw');return new Uint8Array(await new Response(new Blob([u]).stream().pipeThrough(cs)).arrayBuffer());}
+function saveSum(t){let h=0;for(let i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))%1679616;return h.toString(36).toUpperCase().padStart(4,'0');}
+async function makeSaveCode(){
+  let u=new TextEncoder().encode(JSON.stringify({v:1,app:APP_VER,at:Date.now(),save:SAVE,decks:MY})),f='P';
+  if(typeof CompressionStream==='function'){try{u=await zipBytes(u,false);f='Z';}catch(e){}}
+  const body=f+B64U.enc(u);return `RZS1-${body}-${saveSum(body)}`;
+}
+async function readSaveCode(code){
+  const m=String(code||'').replace(/\s+/g,'').match(/^RZS1-([PZ][A-Za-z0-9_-]+)-([0-9A-Z]{4})$/);
+  if(!m)return {err:'コードの形が正しくありません。最初から最後まで全部コピーできているか確認してください'};
+  if(saveSum(m[1])!==m[2])return {err:'コードの一部が欠けているか、まちがっています。もう一度コピーし直してください'};
+  let u;try{u=B64U.dec(m[1].slice(1));}catch(e){return {err:'コードを読み取れませんでした'};}
+  if(m[1][0]==='Z'){if(typeof DecompressionStream!=='function')return {err:'この端末のブラウザでは読み込めません。ブラウザを最新にしてください'};
+    try{u=await zipBytes(u,true);}catch(e){return {err:'コードを読み取れませんでした'};}}
+  let d;try{d=JSON.parse(new TextDecoder().decode(u));}catch(e){return {err:'コードを読み取れませんでした'};}
+  return cleanSaveData(d);
+}
+function cleanSaveData(d){
+  if(!d||d.v!==1||!d.save||typeof d.save.coins!=='number'||!d.save.owned||typeof d.save.owned!=='object')return {err:'引き継ぎコードの中身が正しくありません'};
+  const s=d.save,int=x=>Math.max(0,Math.floor(+x||0));
+  const owned={};for(const [id,n] of Object.entries(s.owned))if(C[id]&&int(n)>0)owned[id]=int(n);
+  const okStats=s.stats&&s.stats.cpu&&s.stats.fac&&Array.isArray(s.stats.online);
+  const okDaily=s.daily&&typeof s.daily.date==='string'&&Array.isArray(s.daily.ids)&&s.daily.prog&&s.daily.claimed;
+  const save=normSave({coins:int(s.coins),shards:int(s.shards),owned,starter:STARTERS.some(x=>x.id===s.starter)?s.starter:null,
+    stats:okStats?s.stats:undefined,daily:okDaily?s.daily:null,tutDone:!!s.tutDone});
+  const decks=(Array.isArray(d.decks)?d.decks:[]).filter(x=>x&&FAC[x.fac]&&x.cards&&typeof x.cards==='object').slice(0,100).map((x,i)=>{
+    const cards={};for(const [id,n] of Object.entries(x.cards))if(C[id]&&C[id].fac===x.fac&&int(n)>0)cards[id]=Math.min(3,int(n));
+    return {id:typeof x.id==='string'&&x.id?x.id.slice(0,40):'d'+Date.now().toString(36)+i,name:String(x.name||FAC[x.fac]).slice(0,30),fac:x.fac,
+      partner:C[x.partner]&&C[x.partner].fac===x.fac?x.partner:'',cards};});
+  return {save,decks,at:+d.at||0,app:String(d.app||'')};
+}
+const SV={code:null,busy:false,input:'',msg:'',pending:null};
+const cardTotal=o=>Object.values(o).reduce((a,b)=>a+b,0);
+function openSaveScreen(){SV.code=null;SV.msg='';SV.pending=null;scr='save';render();window.scrollTo(0,0);
+  if(SAVE.starter){SV.busy=true;makeSaveCode().then(c=>{SV.code=c;SV.busy=false;if(scr==='save')render();},()=>{SV.busy=false;SV.msg='コードを作れませんでした';if(scr==='save')render();});}}
+function saveHTML(){
+  const p=SV.pending;
+  return `<div class="top"><button class="btn sub" data-act="go-title">戻る</button><h2>データの引き継ぎ</h2></div>
+  ${SAVE.starter?`<div class="box stack"><b>引き継ぎコードを作る</b>
+    <span class="dm">コイン・カード・かけら・デッキ・戦績を1つのコードにまとめます。メモやLINEなどに保存しておくと、機種変更やデータが消えたときに、別の端末で続きから遊べます。</span>
+    <span class="dm">コードは「今の状態の写し」です。カードが増えたら作り直して保存し直してください。</span>
+    ${SV.code?`<textarea class="savecode" readonly onclick="this.select()">${esc(SV.code)}</textarea>
+      <div class="codebox"><button class="btn go" data-act="sv-copy">コピー</button>${navigator.share?'<button class="btn" data-act="sv-share">共有</button>':''}</div>`
+      :`<span class="dm">${SV.busy?'コードを作っています…':''}</span>`}
+  </div>`:''}
+  <div class="box stack"><b>引き継ぎコードで続きから遊ぶ</b>
+    ${p?`<span>このコードのデータ（${p.at?esc(new Date(p.at).toLocaleString('ja-JP')):'日時不明'}に作成${p.app?`・Ver. ${esc(p.app)}`:''}）</span>
+      <span class="dm">コイン ${p.save.coins}　カード ${Object.keys(p.save.owned).length}種類・${cardTotal(p.save.owned)}枚　かけら ${p.save.shards}　デッキ ${p.decks.length}個${p.save.starter?`　スターター：${FAC[STARTERS.find(x=>x.id===p.save.starter).fac]}`:''}</span>
+      ${SAVE.starter?`<span style="font-size:12px;color:var(--danger)">この端末の今のデータ（コイン ${SAVE.coins}・カード ${cardTotal(SAVE.owned)}枚・デッキ ${MY.length}個）は消えて、上書きされます。</span>`:''}
+      <button class="btn go" data-act="sv-apply">${SAVE.starter?'上書きして続きから遊ぶ':'このデータで続きから遊ぶ'}</button>
+      <button class="btn sub" data-act="sv-cancel">やめる</button>`
+    :`<span class="dm">前の端末で作った引き継ぎコードを貼り付けてください。</span>
+      <textarea class="savecode" data-act="savein" placeholder="RZS1-…" autocomplete="off" autocapitalize="off" spellcheck="false">${esc(SV.input)}</textarea>
+      <button class="btn" data-act="sv-read">読み込む</button>`}
+    ${SV.msg?`<span style="font-size:12px">${esc(SV.msg)}</span>`:''}
+  </div>`;
+}
+
 let lastPack=null, colFac='dragon';
 function buyPack(){
   if(SAVE.coins<PACK_PRICE)return;
@@ -576,7 +638,7 @@ function deckError(d,free){
 }
 
 /* ===== 状態 ===== */
-const APP_VER='0.37';
+const APP_VER='0.39';
 let scr='splash', G=null, sel=null, showRules=false, ED=null, delId=null, edFilter='all', saveMsg='';
 let setup={d:['st-dragon','st-machine'],mode:'cpu',level:'normal'};
 const LEVELS={easy:'かんたん',normal:'ふつう',hard:'むずかしい'};
@@ -969,11 +1031,19 @@ function initRoom(){
     window.claude.use('room').then(r=>{ROOM=r;ROOM_WHY=r?'':'null';if(scr==='online')render();},()=>{ROOM=null;ROOM_WHY='null';if(scr==='online')render();});
     return;
   }
-  if(window.mqtt&&typeof window.mqtt.connect==='function'){ROOM=makeRelayRoom();ROOM_WHY='';NET_MODE='relay';return;}
-  ROOM=null;ROOM_WHY='nopeer';
+  NET_MODE='relay';
+  if(window.mqtt&&typeof window.mqtt.connect==='function'){ROOM=makeRelayRoom();ROOM_WHY='';return;}
+  /* 通信用プログラムは、通信対戦を開いたときに読み込む（起動を軽くするため） */
+  ROOM=undefined;ROOM_WHY='';if(MQTT_LOADING)return;MQTT_LOADING=true;
+  const s=document.createElement('script');s.src=MQTT_SRC;s.async=true;
+  s.onload=()=>{MQTT_LOADING=false;if(window.mqtt&&typeof window.mqtt.connect==='function'){ROOM=makeRelayRoom();ROOM_WHY='';}else{ROOM=null;ROOM_WHY='nopeer';}if(scr==='online')render();};
+  s.onerror=()=>{MQTT_LOADING=false;s.remove();ROOM=null;ROOM_WHY='nopeer';if(scr==='online')render();};
+  document.head.appendChild(s);
 }
 let NET_MODE='claude';
-initRoom();
+const MQTT_SRC='https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js';let MQTT_LOADING=false;
+const hasClaudeAPI=()=>!!(window.claude&&typeof window.claude.use==='function');
+if(hasClaudeAPI())initRoom();
 const netWait=()=>!!(NET.active&&G&&G.cur!==NET.me&&!G.over);
 function compactG(){const c=structuredClone(G);c.log=c.log.slice(-4);return c;}
 function netSync(){
@@ -1197,10 +1267,19 @@ const MISSIONS=[
  {id:'online1',text:'通信対戦を1回遊ぶ',goal:1,ev:'online',reward:60},
 ];
 const todayStr=()=>{const d=new Date();return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;};
+/* 「〇〇のデッキで勝つ」は、その陣営の使えるデッキがあるときだけ出す */
+function missionOK(id){const m=MISSIONS.find(x=>x.id===id);if(!m)return false;if(!m.ev.startsWith('win_'))return true;
+  const f=m.ev.slice(4);return myDecks().some(d=>d.fac===f&&!deckError(d));}
 function ensureDaily(){
-  const t=todayStr();if(SAVE.daily&&SAVE.daily.date===t)return;
+  const t=todayStr();
+  if(SAVE.daily&&SAVE.daily.date===t){
+    const d=SAVE.daily;let ch=false;
+    d.ids.forEach((id,i)=>{if(missionOK(id)||d.prog[id]||d.claimed[id])return;
+      const r=MISSIONS.map(m=>m.id).find(x=>!d.ids.includes(x)&&missionOK(x));if(r){d.ids[i]=r;ch=true;}});
+    if(ch)storeSave();return;
+  }
   let h=0;for(const ch of t)h=(h*31+ch.charCodeAt(0))>>>0;
-  const pool=MISSIONS.map(m=>m.id),ids=[];
+  const pool=MISSIONS.map(m=>m.id).filter(missionOK),ids=[];
   while(ids.length<3){h=(h*1103515245+12345)>>>0;const id=pool[h%pool.length];if(!ids.includes(id))ids.push(id);}
   SAVE.daily={date:t,ids,prog:{},claimed:{}};storeSave();
 }
@@ -1477,7 +1556,7 @@ const RULES=`<div class="rules">
 <li>相手のセンターが空いていれば、どのモンスターでも本体を攻撃できる</li>
 <li>連携攻撃：2〜3体で同時に攻撃して攻撃力を合計できる。相手のどのモンスターでも狙える。センターが空いていれば本体も狙え、打撃の合計がダメージになる</li>
 <li>攻撃力が相手の体力以上なら破壊。攻撃した側は傷つかない</li>
-<li>出したターンは攻撃できない（速攻は例外）。攻撃は1ターン1回</li>
+<li>出したターンは攻撃できない（速攻は例外）。攻撃は1体につき1ターン1回（2回攻撃・3回攻撃は例外）</li>
 <li>破壊されたモンスターと使った呪文は墓地へ</li>
 <li>相手のライフを0にするか、相手が引けなくなったら勝ち</li></ul>
 <h3>パートナー</h3><ul>
@@ -1495,7 +1574,8 @@ const RULES=`<div class="rules">
 <li>移動：メインフェーズに1ターン1回、空いているマスに移動できる（出したターンもOK）</li>
 <li>3回攻撃：1ターンに3回攻撃できる</li>
 <li>加護：相手の呪文や効果で破壊されず、相手の呪文の対象にもならない（攻撃では破壊できる）</li>
-<li>共鳴：自分のパートナーが場にいると強くなる</li></ul></div>`;
+<li>共鳴：自分のパートナーが場にいると強くなる</li>
+<li>自分のターンのはじめに：毎ターンのはじめに効果が発動する</li></ul></div>`;
 
 /* ===== 描画：画面 ===== */
 function deckOptions(selId,opp){
@@ -1515,6 +1595,7 @@ function titleHTML(){
     <button class="btn sub" data-act="go-mis">ミッション・戦績${missionReady()?`<span class="badge2">${missionReady()}</span>`:''}</button>
     <button class="btn sub" data-act="go-tut">あそびかた（チュートリアル）</button>
     <button class="btn sub" data-act="rules">ルールを見る</button>
+    <button class="btn sub" data-act="go-save">データの引き継ぎ</button>
   </div>
   <p class="coins">所持コイン <b>${SAVE.coins}</b></p>
   ${soundHTML()}
@@ -1578,7 +1659,8 @@ function pickHTML(){
   <div class="stack">${STARTERS.map(d=>`<div class="box deck ${d.fac}"><span class="dn ${FCLS[d.fac]}">${FAC[d.fac]}</span>
     <span class="dm">${info[d.fac]}</span><span class="dm">パートナー：${esc(C[d.partner].name)}</span>
     <button class="btn go" data-act="pick-starter" data-id="${d.id}">${FAC[d.fac]}にする</button></div>`).join('')}</div>
-  <p style="margin:0;font-size:12px;color:var(--muted);text-align:center">ほかの陣営のカードは、パックで集められます</p>`;
+  <p style="margin:0;font-size:12px;color:var(--muted);text-align:center">ほかの陣営のカードは、パックで集められます</p>
+  <button class="btn sub" data-act="go-save">前の端末のデータを引き継ぐ</button>`;
 }
 function shopHTML(){
   const res=lastPack?`<div class="box stack"><b>パックの中身</b>
@@ -1604,12 +1686,12 @@ function render(){
   if(SIM)return;
   bgm(scr==='game'&&G&&!G.over?'battle':'menu');
   if(scr==='splash'){$('#app').className='page';$('#app').innerHTML='';$('#ov').innerHTML=splashHTML();return;}
-  if(scr!=='game'&&!SAVE.starter)scr='pick';
+  if(scr!=='game'&&scr!=='save'&&!SAVE.starter)scr='pick';
   if(NET.active&&scr==='game')netSync();
   const app=$('#app'),ov=$('#ov');
   if(scr!=='game'){
     app.className='page';ov.innerHTML=rulesOv();
-    app.innerHTML={title:titleHTML,setup:setupHTML,decks:decksHTML,newdeck:newDeckHTML,edit:editHTML,shop:shopHTML,col:colHTML,online:onlineHTML,pick:pickHTML,mis:missionHTML,tut:tutHTML}[scr]();
+    app.innerHTML={title:titleHTML,setup:setupHTML,decks:decksHTML,newdeck:newDeckHTML,edit:editHTML,shop:shopHTML,col:colHTML,online:onlineHTML,pick:pickHTML,mis:missionHTML,tut:tutHTML,save:saveHTML}[scr]();
     return;
   }
   app.className='game';
@@ -1651,7 +1733,7 @@ document.addEventListener('click',e=>{
   if(a==='snd-se'){SND.set.se=!SND.set.se;sndSave();render();if(SND.set.se)sfx('tap');return;}
   if(a==='rules'){showRules=!showRules;render();return;}
   if(a==='go-title'){netLeave();scr='title';G=null;showRules=false;render();return;}
-  if(a==='go-online'){scr='online';render();return;}
+  if(a==='go-online'){scr='online';if(!hasClaudeAPI()&&!ROOM)initRoom();render();return;}
   if(a==='net-create'){netJoin(String(Math.floor(1000+Math.random()*9000)));return;}
   if(a==='net-join'){netJoin((NET.codeInput||'').trim());return;}
   if(a==='net-leave'){netLeave();render();return;}
@@ -1662,6 +1744,15 @@ document.addEventListener('click',e=>{
   if(a==='go-shop'){scr='shop';G=null;lastPack=null;render();window.scrollTo(0,0);return;}
   if(a==='go-col'){scr='col';render();window.scrollTo(0,0);return;}
   if(a==='go-mis'){scr='mis';render();window.scrollTo(0,0);return;}
+  if(a==='go-save'){openSaveScreen();return;}
+  if(a==='sv-copy'){const done=()=>{el.textContent='コピーしました';};try{navigator.clipboard.writeText(SV.code).then(done,()=>{el.textContent='長押しでコピー';});}catch(e){el.textContent='長押しでコピー';}return;}
+  if(a==='sv-share'){try{navigator.share({title:'レゾナンス 引き継ぎコード',text:SV.code}).catch(()=>{});}catch(e){}return;}
+  if(a==='sv-read'){SV.msg='読み込んでいます…';render();readSaveCode(SV.input).then(r=>{if(r.err){SV.msg=r.err;}else{SV.pending=r;SV.msg='';}if(scr==='save')render();});return;}
+  if(a==='sv-cancel'){SV.pending=null;SV.msg='';render();return;}
+  if(a==='sv-apply'){const p=SV.pending;if(!p)return;SAVE=p.save;MY=p.decks;topUpStarter();
+    if(!storeSave()||!saveDecks(MY)){SV.msg='保存できませんでした。端末の空き容量を確認してください';render();return;}
+    setup.d[0]=SAVE.starter;NET.deckId=SAVE.starter;SV.input='';SV.pending=null;
+    if(SAVE.starter){openSaveScreen();SV.msg='引き継ぎました！続きから遊べます';render();}else{SV.msg='引き継ぎました';scr='pick';render();}return;}
   if(a==='claim'){ensureDaily();const m=MISSIONS.find(x=>x.id===el.dataset.id);if(m&&(SAVE.daily.prog[m.id]||0)>=m.goal&&!SAVE.daily.claimed[m.id]){SAVE.daily.claimed[m.id]=true;SAVE.coins+=m.reward;storeSave();sfx('coin');}render();return;}
   if(a==='dis'){if(dismantle(el.dataset.id,false)){storeSave();sfx('coin');}const y=window.scrollY;render();window.scrollTo(0,y);return;}
   if(a==='dis-all'){let g=0;DB.forEach(c=>{g+=dismantle(c.id,true);});if(g){storeSave();sfx('coin');}const y=window.scrollY;render();window.scrollTo(0,y);return;}
@@ -1752,7 +1843,7 @@ document.addEventListener('change',e=>{
   if(el.dataset.act==='partner'){ED.partner=el.value;saveMsg='';render();}
   if(el.dataset.act==='netdeck'){NET.deckId=el.value;render();}
 });
-document.addEventListener('input',e=>{if(e.target.dataset.act==='codein'){codeIn=e.target.value;return;}if(e.target.dataset.act==='snd-vol'){SND.set.vol=(+e.target.value)/100;if(SND.master)SND.master.gain.value=SND.set.vol;sndSave();return;}if(e.target.dataset.act==='name')ED.name=e.target.value;if(e.target.dataset.act==='code')NET.codeInput=e.target.value.replace(/\D/g,'');});
+document.addEventListener('input',e=>{if(e.target.dataset.act==='codein'){codeIn=e.target.value;return;}if(e.target.dataset.act==='savein'){SV.input=e.target.value;return;}if(e.target.dataset.act==='snd-vol'){SND.set.vol=(+e.target.value)/100;if(SND.master)SND.master.gain.value=SND.set.vol;sndSave();return;}if(e.target.dataset.act==='name')ED.name=e.target.value;if(e.target.dataset.act==='code')NET.codeInput=e.target.value.replace(/\D/g,'');});
 render();
 </script>
 <script>
