@@ -182,6 +182,13 @@ select,input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px so
 .savebar .msg{flex:1;font-size:12px;color:var(--muted)}
 .savebar .msg.ok{color:var(--ok)}
 .count{font-family:"Dela Gothic One",sans-serif;font-size:20px}
+.tutbox{text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px 16px;min-height:300px;justify-content:center}
+.tutbox h2{margin:0;font-size:22px}.tutbox p{margin:0;line-height:1.8;font-size:15px}.tutbox b{color:var(--gold)}
+.tuticon{font-size:52px;line-height:1.2}
+.dots{display:flex;gap:6px;justify-content:center}.dots span{width:8px;height:8px;border-radius:50%;background:var(--line)}.dots span.on{background:var(--gold)}
+.coach{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:color-mix(in srgb,var(--gold) 16%,var(--surface));border:2px solid var(--gold);font-size:12.5px;line-height:1.45;animation:popin .35s ease-out}
+.coach .cb{flex:none;font-weight:800;color:#1A1D29;background:var(--gold);border-radius:6px;padding:1px 6px;font-size:11px}
+.coach .ct2{flex:1}
 @keyframes popin{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
 .fx-pop{animation:popin .45s ease-out}
 @keyframes lu{0%,100%{transform:none}40%{transform:translateY(-22px) scale(1.06)}}
@@ -570,7 +577,7 @@ function makePlayer(deck,i){
 }
 function newGame(decks){
   G={p:[makePlayer(decks[0],0),makePlayer(decks[1],1)],log:[],over:null,passing:true,phase:'draw',cpu:setup.mode==='cpu'?1:null,level:setup.level};
-  G.cur=Math.random()<.5?0:1;G.first=G.cur;sel=null;scr='game';RESULT_DONE=false;
+  G.cur=setup.forceFirst!=null?setup.forceFirst:(Math.random()<.5?0:1);setup.forceFirst=null;G.first=G.cur;sel=null;scr='game';RESULT_DONE=false;
   if(G.cpu!=null&&G.level==='hard'){const c=G.p[G.cpu];c.charge.push(c.deck.shift());log('むずかしいCPUはチャージ1枚からスタート');}
   log(`${pn(G.cur)}が先攻`);nextTurn();
 }
@@ -606,6 +613,7 @@ function endTurn(){
 function gameOver(w,reason){
   if(!G.over){G.over={w,reason};
     if(!SIM&&G.cpu!=null&&w!==G.cpu&&!G.rewarded){G.rewarded=REWARD[G.level]||0;SAVE.coins+=G.rewarded;storeSave();}
+    if(!SIM&&G.tutorial&&!SAVE.tutDone){SAVE.tutDone=true;G.tutBonus=100;SAVE.coins+=100;storeSave();}
     if(!SIM)recordResult();
     if(!SIM){const mine=G.cpu!=null?1-G.cpu:(NET.active?NET.me:w);sfx(w===mine?'win':'lose');if(G.rewarded)setTimeout(()=>sfx('coin'),900);}}
   render();
@@ -1234,6 +1242,61 @@ function parseDeckCode(code){
 }
 let codeShow=null,codeIn='',codeMsg='';
 
+/* ===== チュートリアル ===== */
+let tutPage=0;
+const TUT_PAGES=[
+ {icon:'🎯',title:'勝ち方',body:'相手の<b>ライフ10</b>を0にしたら勝ち！<br>モンスターで攻撃したり、呪文でダメージを与えたりして削っていきます。'},
+ {icon:'🔄',title:'ターンの流れ',body:'<b>ドロー</b>：1枚引く<br><b>チャージ</b>：手札を1枚、チャージゾーンに置ける<br><b>メイン</b>：カードを使う<br><b>アタック</b>：モンスターで攻撃<br><b>エンド</b>：ターン終了'},
+ {icon:'⚡',title:'チャージとソウル',body:'カードを使うには<b>ソウル</b>が必要です。<br>ソウルは<b>チャージゾーンの枚数</b>ぶん、毎ターン使えます。<br>まずは毎ターン1枚ずつチャージしていくのが基本です。'},
+ {icon:'🃏',title:'場とモンスター',body:'場は<b>レフト・センター・ライト</b>の3マス。<br>出したばかりのモンスターは、そのターンは攻撃できません（<b>速攻</b>は例外）。<br>カードの「攻」は攻撃力、「体」は体力、「打」は相手ライフへのダメージです。'},
+ {icon:'⚔️',title:'攻撃',body:'攻撃したい<b>敵モンスターを選んで</b>攻撃。攻撃力が相手の体力以上なら破壊できます。<br>自分の<b>正面が空いている</b>か、相手の<b>センターが空いている</b>と、相手の本体を直接攻撃できます。'},
+ {icon:'🤝',title:'連携攻撃',body:'2〜3体で<b>同時に攻撃</b>すると、攻撃力を合計できます。<br>1体では倒せない硬いモンスターも、みんなで倒しましょう。'},
+ {icon:'✨',title:'パートナーとソウルバースト',body:'<b>パートナー</b>はいつでも呼べる相棒。初めて呼ぶとライフ+1。<br>ライフが<b>4以下</b>になると、1ゲームに1回だけ大技<b>ソウルバースト</b>が使えます。逆転のチャンス！'},
+];
+function tutHTML(){
+  const pg=TUT_PAGES[tutPage],last=tutPage===TUT_PAGES.length-1;
+  return `<div class="top"><h2>あそびかた</h2><span style="color:var(--muted);font-size:13px">${tutPage+1} / ${TUT_PAGES.length}</span></div>
+  <div class="box tutbox"><div class="tuticon" aria-hidden="true">${pg.icon}</div><h2>${pg.title}</h2><p>${pg.body}</p></div>
+  <div class="dots">${TUT_PAGES.map((_,i)=>`<span class="${i===tutPage?'on':''}"></span>`).join('')}</div>
+  <div class="btns" style="justify-content:space-between">
+    <button class="btn sub" data-act="tut-prev" ${tutPage?'':'disabled'}>前へ</button>
+    ${last?'<button class="btn go" data-act="tut-play">練習試合をする</button>':'<button class="btn" data-act="tut-next">次へ</button>'}
+  </div>
+  ${last?`<p style="margin:0;font-size:12px;color:var(--muted);text-align:center">コーチのヒントつきで、かんたんなCPUと対戦します。${SAVE.tutDone?'':'終わると<b>100コイン</b>のボーナス！'}</p>`:''}
+  <button class="btn sub" data-act="tut-skip">${SAVE.tutDone?'タイトルへ':'スキップする'}</button>`;
+}
+function startTutorial(){
+  setup.mode='cpu';setup.level='easy';
+  const mine=deckById(SAVE.starter),opp=STARTERS.find(d=>d.id!==SAVE.starter);
+  showRules=false;setup.forceFirst=0;newGame([mine,opp]);G.tutorial=true;G.tipSeen={};render();
+}
+function coachTip(){
+  if(!G||!G.tutorial||G.over||G.passing)return null;
+  const p=me(),o=op(),seen=G.tipSeen,mine=!cpuNow();
+  const T=(k,t)=>seen[k]?null:{k,t};
+  if(!mine)return T('opp','相手のターンです。相手の動きを見て待ちましょう。');
+  const ready=[0,1,2].filter(l=>canAttack(p.field[l],p,l));
+  const list=[];
+  if(G.phase==='charge')list.push(T('charge','まず手札を1枚タップして「チャージする」！チャージの枚数が、毎ターン使えるソウルになります。'));
+  if(G.phase==='main'){
+    list.push(T('main','ソウル以内のコストのカードが使えます。モンスターをタップして、光ったマスに出してみよう。'));
+    if(p.buddy==='zone'&&p.energy>=C[p.buddyId].cost)list.push(T('partner','パートナーゾーンのカードも呼べます。初めて呼ぶとライフ+1！'));
+    if(p.field.some(u=>u&&u.summoned&&!C[u.id].rush))list.push(T('sick','出したばかりのモンスターは、このターンは攻撃できません。出し終わったら「アタックへ」を押そう。'));
+    if(p.life<=4&&!p.finUsed&&p.hand.some(id=>C[id].type==='finisher'))list.push(T('burst','ライフが4以下なので、ソウルバーストが使えます！逆転のチャンス！'));
+  }
+  if(G.phase==='attack'){
+    if(ready.length)list.push(T('attack','緑に光るモンスターをタップして、攻撃したい敵をタップ。正面が空いていれば「本体」も狙えます。'));
+    if(ready.length>=2&&o.field.some(Boolean))list.push(T('link','「連携」を使うと、2〜3体の攻撃力を合計できます。硬い敵はみんなで倒そう！'));
+    if(ready.length&&!o.field[1])list.push(T('center','相手のセンターが空いています！どのモンスターでも本体を攻撃できます。'));
+    if(!ready.length)list.push(T('end','攻撃できるモンスターがいなければ「ターン終了」で相手の番です。'));
+  }
+  return list.find(Boolean)||null;
+}
+function coachHTML(){
+  const t=coachTip();if(!t)return '';
+  return `<div class="coach"><span class="cb">コーチ</span><span class="ct2">${t.t}</span><button class="btn go mini" data-act="tip-ok" data-k="${t.k}">OK</button></div>`;
+}
+
 /* ===== 描画：カードUI ===== */
 const ICON={dragon:'🐉',machine:'⚙️',magic:'🔮'};
 function iconOf(c){return c.type==='spell'?'📜':(c.type==='finisher'?'💥':ICON[c.fac]);}
@@ -1365,7 +1428,7 @@ function handHTML(){
     return cardUI(c,{cls,attrs:`data-act="hand" data-idx="${i}"`});}).join('')||'<span class="handlabel">手札はありません</span>'}</div>`;
 }
 function dockHTML(){
-  return `${NET.oppLeft?'<div class="panel"><div class="txt"><b>相手が部屋から出ました</b></div><div class="btns"><button class="btn" data-act="go-title">タイトルへ</button></div></div>':''}${infoHTML(vme(),true)}<div class="phases">${PHASES.map(([k,l])=>`<span class="${G.phase===k?'now':''}">${l}</span>`).join('')}</div>${panelHTML()}${handHTML()}`;
+  return `${coachHTML()}${NET.oppLeft?'<div class="panel"><div class="txt"><b>相手が部屋から出ました</b></div><div class="btns"><button class="btn" data-act="go-title">タイトルへ</button></div></div>':''}${infoHTML(vme(),true)}<div class="phases">${PHASES.map(([k,l])=>`<span class="${G.phase===k?'now':''}">${l}</span>`).join('')}</div>${panelHTML()}${handHTML()}`;
 }
 const RULES=`<div class="rules">
 <h3>ターンの流れ</h3><ul>
@@ -1416,6 +1479,7 @@ function titleHTML(){
     <button class="btn bigbtn" data-act="go-shop">パックを買う</button>
     <button class="btn sub" data-act="go-col">コレクション</button>
     <button class="btn sub" data-act="go-mis">ミッション・戦績${missionReady()?`<span class="badge2">${missionReady()}</span>`:''}</button>
+    <button class="btn sub" data-act="go-tut">あそびかた（チュートリアル）</button>
     <button class="btn sub" data-act="rules">ルールを見る</button>
   </div>
   <p class="coins">所持コイン <b>${SAVE.coins}</b></p>
@@ -1509,7 +1573,7 @@ function render(){
   const app=$('#app'),ov=$('#ov');
   if(scr!=='game'){
     app.className='page';ov.innerHTML=rulesOv();
-    app.innerHTML={title:titleHTML,setup:setupHTML,decks:decksHTML,newdeck:newDeckHTML,edit:editHTML,shop:shopHTML,col:colHTML,online:onlineHTML,pick:pickHTML,mis:missionHTML}[scr]();
+    app.innerHTML={title:titleHTML,setup:setupHTML,decks:decksHTML,newdeck:newDeckHTML,edit:editHTML,shop:shopHTML,col:colHTML,online:onlineHTML,pick:pickHTML,mis:missionHTML,tut:tutHTML}[scr]();
     return;
   }
   app.className='game';
@@ -1517,6 +1581,7 @@ function render(){
     app.innerHTML='';
     ov.innerHTML=`<div class="ov"><div class="ovbox"><h1 class="${FCLS[G.p[G.over.w].fac]}">${pname(G.over.w)}の勝ち</h1>
       <p>${fmtLog(G.over.reason)}</p>
+      ${G.tutBonus?`<p class="reward">チュートリアル完了ボーナス +${G.tutBonus} コイン！</p>`:''}
       ${G.rewarded?`<p class="reward">+${G.rewarded} コイン獲得！（所持 ${SAVE.coins}）</p><button class="btn bigbtn" data-act="go-shop">パックを買いに行く</button>`:''}
       ${NET.active?(NET.me===0&&!NET.oppLeft?'<button class="btn go bigbtn" data-act="net-rematch">もう一度対戦</button>':`<p>${NET.oppLeft?'相手が部屋から出ました':'部屋を作った人が「もう一度対戦」を押すと始まります'}</p>`)
       :'<button class="btn go bigbtn" data-act="start">同じデッキでもう一度</button>\n      <button class="btn sub" data-act="go-setup">デッキを選び直す</button>'}
@@ -1571,7 +1636,7 @@ document.addEventListener('click',e=>{
     const d={id:'d'+Date.now().toString(36),name:`${FAC[r.deck.fac]}（コードから）`,...r.deck};MY.push(d);saveDecks(MY);codeIn='';
     const e2=deckError(d);codeMsg=e2?`追加しました。ただし未完成です：${e2}`:'追加しました！このデッキで対戦できます';render();return;}
   if(a==='buy'){buyPack();return;}
-  if(a==='pick-starter'){const d=STARTERS.find(x=>x.id===el.dataset.id);if(!d||SAVE.starter)return;SAVE.starter=d.id;SAVE.owned={...d.cards};storeSave();setup.d[0]=d.id;NET.deckId=d.id;scr='title';render();window.scrollTo(0,0);return;}
+  if(a==='pick-starter'){const d=STARTERS.find(x=>x.id===el.dataset.id);if(!d||SAVE.starter)return;SAVE.starter=d.id;SAVE.owned={...d.cards};storeSave();setup.d[0]=d.id;NET.deckId=d.id;tutPage=0;scr='tut';render();window.scrollTo(0,0);return;}
   if(a==='colfac'){colFac=el.dataset.f;render();return;}
   if(a==='new-deck'){scr='newdeck';render();return;}
   if(a==='make-deck'){openEditor({name:`${FAC[el.dataset.f]}デッキ`,fac:el.dataset.f,cards:{},partner:''},false);ED.id=null;return;}
@@ -1596,7 +1661,13 @@ document.addEventListener('click',e=>{
     if(!ok)alert('この端末に保存できませんでした。ページを閉じるとデッキは消えます。');
     return;
   }
-  if(a==='start'){showRules=false;
+  if(a==='go-tut'){tutPage=0;scr='tut';render();window.scrollTo(0,0);return;}
+  if(a==='tut-next'){tutPage=Math.min(TUT_PAGES.length-1,tutPage+1);render();return;}
+  if(a==='tut-prev'){tutPage=Math.max(0,tutPage-1);render();return;}
+  if(a==='tut-skip'){scr='title';render();window.scrollTo(0,0);return;}
+  if(a==='tut-play'){startTutorial();return;}
+  if(a==='tip-ok'){if(G&&G.tipSeen){G.tipSeen[el.dataset.k]=true;render();}return;}
+  if(a==='start'){if(G&&G.tutorial){startTutorial();return;}showRules=false;
     let d1=deckById(setup.d[1]);
     if(setup.d[1]==='random'){const pool=allDecks().filter(d=>!deckError(d,true));d1=pool[Math.floor(Math.random()*pool.length)];}
     newGame([deckById(setup.d[0]),d1]);return;}
