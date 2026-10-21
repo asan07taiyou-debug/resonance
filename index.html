@@ -182,6 +182,25 @@ select,input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px so
 .savebar .msg{flex:1;font-size:12px;color:var(--muted)}
 .savebar .msg.ok{color:var(--ok)}
 .count{font-family:"Dela Gothic One",sans-serif;font-size:20px}
+.ver2{text-align:center;margin:0;font-size:11px;color:var(--muted)}
+.splash{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;color:#fff;
+  background:radial-gradient(circle at 50% 38%,#2c3160 0%,#141831 55%,#090b16 100%);user-select:none;-webkit-user-select:none;
+  padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px))}
+.splash .rings{position:relative;width:min(64vw,280px);aspect-ratio:1;margin-bottom:14px}
+.splash .rings span{position:absolute;border-radius:50%;border:7px solid transparent}
+.splash .rings .r1{inset:0;border-top-color:#FF7A45;border-right-color:#FF7A45;animation:spin 6s linear infinite;filter:drop-shadow(0 0 8px #FF7A45)}
+.splash .rings .r2{inset:14%;border-bottom-color:#5AA9F0;border-left-color:#5AA9F0;animation:spin 4.5s linear infinite reverse;filter:drop-shadow(0 0 8px #5AA9F0)}
+.splash .rings .r3{inset:28%;border-top-color:#C77DFF;border-left-color:#C77DFF;animation:spin 3.2s linear infinite;filter:drop-shadow(0 0 8px #C77DFF)}
+.splash .rings .core{inset:0!important;border:none!important;display:grid;place-items:center;font-size:clamp(44px,13vw,64px);color:#E8B931;text-shadow:0 0 22px #E8B931,0 0 44px rgba(232,185,49,.6);animation:pulse2 2.4s ease-in-out infinite}
+.splash .logo{font-family:"Dela Gothic One","Hiragino Sans",sans-serif;font-weight:400;font-size:clamp(42px,13vw,68px);margin:0;letter-spacing:.06em;line-height:1.1;
+  background:linear-gradient(180deg,#FFF6D8,#E8B931 60%,#B07A10);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #000) drop-shadow(0 0 14px rgba(232,185,49,.45))}
+.splash .sublogo{letter-spacing:.55em;font-size:13px;font-weight:800;color:#E8B931;margin-left:.55em}
+.splash .tapmsg{margin-top:34px;font-weight:800;font-size:17px;letter-spacing:.1em;animation:blink 1.4s ease-in-out infinite}
+.splash .ver{position:absolute;right:16px;bottom:calc(14px + env(safe-area-inset-bottom,0px));font-size:12px;color:rgba(255,255,255,.6)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{50%{opacity:.2}}
+@keyframes pulse2{50%{transform:scale(1.1)}}
+@media (prefers-reduced-motion:reduce){.splash .rings span,.splash .tapmsg{animation:none}}
 .tutbox{text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px 16px;min-height:300px;justify-content:center}
 .tutbox h2{margin:0;font-size:22px}.tutbox p{margin:0;line-height:1.8;font-size:15px}.tutbox b{color:var(--gold)}
 .tuticon{font-size:52px;line-height:1.2}
@@ -554,7 +573,8 @@ function deckError(d,free){
 }
 
 /* ===== 状態 ===== */
-let scr='title', G=null, sel=null, showRules=false, ED=null, delId=null, edFilter='all', saveMsg='';
+const APP_VER='0.35';
+let scr='splash', G=null, sel=null, showRules=false, ED=null, delId=null, edFilter='all', saveMsg='';
 let setup={d:['st-dragon','st-machine'],mode:'cpu',level:'normal'};
 const LEVELS={easy:'かんたん',normal:'ふつう',hard:'むずかしい'};
 let SIM=false, DELAY=700;
@@ -1042,11 +1062,12 @@ function audioInit(){
   if(SND.ctx){if(SND.ctx.state==='suspended')SND.ctx.resume().catch(()=>{});return;}
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   try{SND.ctx=new AC();}catch(e){return;}
+  if(SND.ctx.state==='suspended')SND.ctx.resume().catch(()=>{});
   const c=SND.ctx;SND.master=c.createGain();SND.master.gain.value=SND.set.vol;SND.master.connect(c.destination);
   SND.bgmG=c.createGain();SND.bgmG.gain.value=0.55;SND.bgmG.connect(SND.master);
   SND.seG=c.createGain();SND.seG.gain.value=0.9;SND.seG.connect(SND.master);
   const len=c.sampleRate;SND.noiseBuf=c.createBuffer(1,len,c.sampleRate);const d=SND.noiseBuf.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
-  if(SND.want)bgm(SND.want);
+  bgm(SND.want||'menu');
 }
 const mtof=m=>440*Math.pow(2,(m-69)/12);
 function tone(out,f,t,dur,o={}){
@@ -1098,6 +1119,7 @@ function bgm(mode){
 }
 function bgmTick(){
   const c=SND.ctx;if(!c||c.state!=='running')return;
+  if(SND.next<c.currentTime)SND.next=c.currentTime+0.05;
   const S=BGM[SND.mode];if(!S)return;const sp=60/S.bpm/4,o=SND.bgmG;
   while(SND.next<c.currentTime+0.12){
     const t=SND.next,st=SND.step%16,bar=Math.floor(SND.step/16)%4,ch=S.chords[bar];
@@ -1116,6 +1138,8 @@ function bgmTick(){
   }
 }
 document.addEventListener('pointerdown',audioInit,{capture:true});
+document.addEventListener('touchend',audioInit,{capture:true});
+document.addEventListener('click',audioInit,{capture:true});
 document.addEventListener('keydown',audioInit,{capture:true});
 document.addEventListener('visibilitychange',()=>{if(!SND.ctx)return;if(document.hidden)SND.ctx.suspend().catch(()=>{});else SND.ctx.resume().catch(()=>{});});
 function soundHTML(){
@@ -1253,6 +1277,13 @@ const TUT_PAGES=[
  {icon:'🤝',title:'連携攻撃',body:'2〜3体で<b>同時に攻撃</b>すると、攻撃力を合計できます。<br>1体では倒せない硬いモンスターも、みんなで倒しましょう。'},
  {icon:'✨',title:'パートナーとソウルバースト',body:'<b>パートナー</b>はいつでも呼べる相棒。初めて呼ぶとライフ+1。<br>ライフが<b>4以下</b>になると、1ゲームに1回だけ大技<b>ソウルバースト</b>が使えます。逆転のチャンス！'},
 ];
+function splashHTML(){
+  return `<div class="splash" data-act="splash-go" role="button" tabindex="0" aria-label="タップしてはじめる">
+    <div class="rings" aria-hidden="true"><span class="r1"></span><span class="r2"></span><span class="r3"></span><span class="core">★</span></div>
+    <h1 class="logo">レゾナンス</h1><div class="sublogo">RESONANCE</div>
+    <div class="tapmsg">タップしてはじめる</div>
+    <div class="ver">Ver. ${APP_VER}</div></div>`;
+}
 function tutHTML(){
   const pg=TUT_PAGES[tutPage],last=tutPage===TUT_PAGES.length-1;
   return `<div class="top"><h2>あそびかた</h2><span style="color:var(--muted);font-size:13px">${tutPage+1} / ${TUT_PAGES.length}</span></div>
@@ -1471,7 +1502,7 @@ function deckOptions(selId,opp){
   }).join('');
 }
 function titleHTML(){
-  return `<div class="hero"><h1>レゾナンス</h1><p>魂を封じたカードで戦う、カードゲームの試作版</p></div>
+  return `<div class="hero"><h1>レゾナンス</h1><p>魂を封じたカードで戦う、カードゲーム</p></div>
   <div class="stack">
     <button class="btn go bigbtn" data-act="go-setup">対戦する</button>
     <button class="btn bigbtn" data-act="go-decks">デッキを作る</button>
@@ -1483,7 +1514,8 @@ function titleHTML(){
     <button class="btn sub" data-act="rules">ルールを見る</button>
   </div>
   <p class="coins">所持コイン <b>${SAVE.coins}</b></p>
-  ${soundHTML()}`;
+  ${soundHTML()}
+  <p class="ver2">Ver. ${APP_VER}</p>`;
 }
 function setupHTML(){
   if(!myDecks().some(d=>d.id===setup.d[0]&&!deckError(d)))setup.d[0]=SAVE.starter;
@@ -1568,6 +1600,7 @@ function colHTML(){
 function render(){
   if(SIM)return;
   bgm(scr==='game'&&G&&!G.over?'battle':'menu');
+  if(scr==='splash'){$('#app').className='page';$('#app').innerHTML='';$('#ov').innerHTML=splashHTML();return;}
   if(scr!=='game'&&!SAVE.starter)scr='pick';
   if(NET.active&&scr==='game')netSync();
   const app=$('#app'),ov=$('#ov');
@@ -1661,6 +1694,7 @@ document.addEventListener('click',e=>{
     if(!ok)alert('この端末に保存できませんでした。ページを閉じるとデッキは消えます。');
     return;
   }
+  if(a==='splash-go'){scr=SAVE.starter?'title':'pick';$('#ov').innerHTML='';sfx('turn');render();window.scrollTo(0,0);return;}
   if(a==='go-tut'){tutPage=0;scr='tut';render();window.scrollTo(0,0);return;}
   if(a==='tut-next'){tutPage=Math.min(TUT_PAGES.length-1,tutPage+1);render();return;}
   if(a==='tut-prev'){tutPage=Math.max(0,tutPage-1);render();return;}
