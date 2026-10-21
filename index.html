@@ -511,7 +511,7 @@ function describe(c){
 DB.forEach(c=>{
   c.fac=FACOF[c.id[0]];c.text=describe(c);
   if(c.fx){const f=c.fx.find(f=>['kill','debuff','bounce','buff','again','shield'].includes(f.k));
-    if(f)c.tgt=f.k==='kill'?{side:'op',def:f.n}:(['debuff','bounce'].includes(f.k)?{side:'op'}:{side:'me'});}
+    if(f)c.tgt=f.k==='kill'?{side:'op',def:f.n}:(['debuff','bounce'].includes(f.k)?{side:'op'}:(f.k==='again'?{side:'me',ready:1}:{side:'me'}));}
 });
 /* レア度：R（レア）・UC（アンコモン）・C（コモン） */
 const SR_IDS=new Set(["D-05","D-09","D-33","D-34","D-46","D-47","D-48","D-49","M-09","M-31","M-32","M-33","M-46","M-47","M-48","M-49","W-09","W-27","W-28","W-29","W-46","W-47","W-48","W-49"]);
@@ -573,7 +573,7 @@ function deckError(d,free){
 }
 
 /* ===== 状態 ===== */
-const APP_VER='0.35';
+const APP_VER='0.36';
 let scr='splash', G=null, sel=null, showRules=false, ED=null, delId=null, edFilter='all', saveMsg='';
 let setup={d:['st-dragon','st-machine'],mode:'cpu',level:'normal'};
 const LEVELS={easy:'かんたん',normal:'ふつう',hard:'むずかしい'};
@@ -692,7 +692,7 @@ function validTargets(c){
   if(c.type==='monster'){p.field.forEach((u,k)=>{if(!u)t.push({side:'me',lane:k})});}
   else if(c.tgt){
     const f=c.tgt.side==='op'?o:p;
-    f.field.forEach((u,k)=>{if(u&&!(c.tgt.side==='op'&&C[u.id].ward)&&(c.tgt.def==null||C[u.id].def<=c.tgt.def))t.push({side:c.tgt.side,lane:k})});
+    f.field.forEach((u,k)=>{if(u&&!(c.tgt.side==='op'&&C[u.id].ward)&&(c.tgt.def==null||C[u.id].def<=c.tgt.def)&&(!c.tgt.ready||!u.summoned||C[u.id].rush))t.push({side:c.tgt.side,lane:k})});
   }
   return t;
 }
@@ -709,7 +709,7 @@ function whyNot(c,isBuddy){
     if(p.finUsed)return 'ソウルバーストはこのゲームで使用済みです';
     if(p.life>4)return 'ライフが4以下のときだけ使えます';
   }
-  if(needsTarget(c)&&validTargets(c).length===0)return c.type==='monster'?'空いているマスがありません':'対象がいません';
+  if(needsTarget(c)&&validTargets(c).length===0)return c.type==='monster'?'空いているマスがありません':(c.tgt&&c.tgt.ready?'このターン攻撃できるモンスターがいません':'対象がいません');
   return null;
 }
 function selCard(){
@@ -737,7 +737,7 @@ function applyFx(p,o,c,target){
       case 'debuffAll':o.field.forEach(u=>{if(u)u.debuff=Math.max(u.debuff||0,f.n);});break;
       case 'bounce':{const u=tu();if(!u)break;o.field[target.lane]=null;
         if(u.partner){o.buddy='zone';log(`${C[u.id].name}はパートナーゾーンに戻った`);}else{o.hand.push(u.id);log(`${C[u.id].name}を手札に戻した`);}break;}
-      case 'again':{const u=tu();if(u){u.atkLeft=Math.max(u.atkLeft,1);u.summoned=false;}break;}
+      case 'again':{const u=tu();if(u){u.atkLeft+=1;log(`${C[u.id].name}はもう一度攻撃できる`);}break;}
       case 'shield':if(tu()){tu().shield=true;log(`${C[tu().id].name}に幻影`);}break;
       case 'perUnit':damage(o,p.field.filter(Boolean).length+f.n);break;
       case 'spells':damage(o,Math.min(f.n,p.spells));break;
@@ -916,7 +916,7 @@ let ROOM, NROOM=null;
 const freshNet=()=>({active:false,me:0,seq:0,lastJSON:'',stage:'idle',code:'',codeInput:'',err:'',oppPeer:null,oppDeck:null,oppLeft:false,peerCount:0,deckId:(NET&&NET.deckId)||'st-dragon'});
 let NET=null;NET=freshNet();
 /* 中継サーバー通信（MQTT）：Claudeの外で開いたとき用 */
-const NET_VER='v028';
+const NET_VER='v036';
 const BROKERS=[['wss://broker.emqx.io:8084/mqtt','1'],['wss://broker.hivemq.com:8884/mqtt','2'],['wss://test.mosquitto.org:8081','3']];
 function connectBroker(i,willTopic){return new Promise((res,rej)=>{
   if(i>=BROKERS.length){rej(new Error('no broker'));return;}
