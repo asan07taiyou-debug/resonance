@@ -182,6 +182,35 @@ select,input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px so
 .savebar .msg{flex:1;font-size:12px;color:var(--muted)}
 .savebar .msg.ok{color:var(--ok)}
 .count{font-family:"Dela Gothic One",sans-serif;font-size:20px}
+@keyframes popin{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+.fx-pop{animation:popin .45s ease-out}
+@keyframes lu{0%,100%{transform:none}40%{transform:translateY(-22px) scale(1.06)}}
+@keyframes ld{0%,100%{transform:none}40%{transform:translateY(22px) scale(1.06)}}
+.fx-lunge-up{animation:lu .4s ease-in-out;position:relative;z-index:5}
+.fx-lunge-down{animation:ld .4s ease-in-out;position:relative;z-index:5}
+@keyframes shk{0%,100%{transform:none}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.fx-shake{animation:shk .35s}
+@keyframes brk{0%{background:color-mix(in srgb,var(--danger) 50%,transparent)}100%{background:transparent}}
+.fx-break{animation:brk .65s}
+.floattx{position:fixed;z-index:50;transform:translate(-50%,-50%);font-family:"Dela Gothic One",sans-serif;font-size:30px;pointer-events:none;animation:flt 1.05s ease-out forwards;text-shadow:0 2px 6px rgba(0,0,0,.45)}
+.floattx.dmg{color:#FF4D4D}.floattx.heal{color:#3DDC84}.floattx.block{color:#9DB8FF;font-size:18px}.floattx.boom{font-size:38px}
+@keyframes flt{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}20%{opacity:1;transform:translate(-50%,-60%) scale(1.15)}100%{opacity:0;transform:translate(-50%,-150%) scale(1)}}
+.fx-flash{position:fixed;inset:0;z-index:40;pointer-events:none;background:radial-gradient(circle,rgba(255,236,170,.95),rgba(255,170,60,.5) 40%,transparent 75%);animation:flash .85s ease-out forwards}
+@keyframes flash{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+.pk{animation:flipin .5s ease-out both}
+.pk:nth-child(2){animation-delay:.15s}.pk:nth-child(3){animation-delay:.3s}.pk:nth-child(4){animation-delay:.45s}.pk:nth-child(5){animation-delay:.7s}
+@keyframes flipin{0%{transform:rotateY(90deg) scale(.8);opacity:0}100%{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.fx-pop,.fx-lunge-up,.fx-lunge-down,.fx-shake,.fx-break,.pk{animation:none}}
+.btn.mini{padding:4px 8px;font-size:11px;border-radius:8px}
+.cnt .btn.mini{width:auto;height:auto;border-radius:8px;font-size:11px;font-weight:700;white-space:nowrap;line-height:1.3}
+.mis{display:flex;flex-direction:column;gap:4px;padding:8px 0;border-top:1px solid var(--line)}
+.mt{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mr{color:var(--gold);font-weight:800;font-size:13px;white-space:nowrap}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar span{display:block;height:100%;background:var(--gold)}
+.stat{display:flex;justify-content:space-between;font-size:13px;border-top:1px solid var(--line);padding-top:6px}
+.badge2{display:inline-block;margin-left:6px;min-width:18px;padding:0 5px;border-radius:99px;background:var(--danger);color:#fff;font-size:11px}
+.codebox{display:flex;gap:6px}.codebox input{flex:1;font-size:12px;padding:8px}
 .sound{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin:6px 0}
 .sound .vol{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
 .sound input[type=range]{width:110px;accent-color:var(--gold)}
@@ -487,7 +516,8 @@ let MY=loadDecks();
 const PACK_PRICE=100, PACK_SIZE=5, REWARD={easy:50,normal:100,hard:200};
 const SKEY='resonance.save.v2';
 function freshSave(){return {coins:0,owned:{},starter:null};}
-function loadSave(){try{const v=JSON.parse(localStorage.getItem(SKEY)||'null');if(v&&typeof v.coins==='number'&&v.owned)return v;}catch(e){}return freshSave();}
+function normSave(v){if(typeof v.shards!=='number')v.shards=0;if(!v.stats)v.stats={cpu:{easy:[0,0],normal:[0,0],hard:[0,0]},online:[0,0],fac:{dragon:[0,0],machine:[0,0],magic:[0,0]}};if(!('daily' in v))v.daily=null;return v;}
+function loadSave(){try{const v=JSON.parse(localStorage.getItem(SKEY)||'null');if(v&&typeof v.coins==='number'&&v.owned)return normSave(v);}catch(e){}return normSave(freshSave());}
 function storeSave(){try{localStorage.setItem(SKEY,JSON.stringify(SAVE));return true;}catch(e){return false;}}
 let SAVE=loadSave();storeSave();
 const owned=id=>SAVE.owned[id]||0;
@@ -499,7 +529,7 @@ function buyPack(){
     const x=Math.random(),r=i<PACK_SIZE-1?(x<0.05?'R':(x<0.30?'UC':'C')):(x<0.015?'LR':(x<0.05?'UR':(x<0.13?'VR':(x<0.31?'R':'UC'))));
     const pool=byR[r],c=pool[Math.floor(Math.random()*pool.length)];got.push({id:c.id,isNew:!owned(c.id)&&!got.some(g=>g.id===c.id)});}
   got.forEach(g=>{SAVE.owned[g.id]=owned(g.id)+1;});
-  SAVE.coins-=PACK_PRICE;storeSave();lastPack={got};render();
+  SAVE.coins-=PACK_PRICE;storeSave();track('pack');lastPack={got};render();
   const top=Math.max(...got.map(g=>RARORDER.indexOf(C[g.id].rar)));sfx(top>=5?'legend':(top>=3?'rare':'pack'));
 }
 const allDecks=()=>STARTERS.concat(MY);
@@ -540,7 +570,7 @@ function makePlayer(deck,i){
 }
 function newGame(decks){
   G={p:[makePlayer(decks[0],0),makePlayer(decks[1],1)],log:[],over:null,passing:true,phase:'draw',cpu:setup.mode==='cpu'?1:null,level:setup.level};
-  G.cur=Math.random()<.5?0:1;G.first=G.cur;sel=null;scr='game';
+  G.cur=Math.random()<.5?0:1;G.first=G.cur;sel=null;scr='game';RESULT_DONE=false;
   if(G.cpu!=null&&G.level==='hard'){const c=G.p[G.cpu];c.charge.push(c.deck.shift());log('むずかしいCPUはチャージ1枚からスタート');}
   log(`${pn(G.cur)}が先攻`);nextTurn();
 }
@@ -576,13 +606,14 @@ function endTurn(){
 function gameOver(w,reason){
   if(!G.over){G.over={w,reason};
     if(!SIM&&G.cpu!=null&&w!==G.cpu&&!G.rewarded){G.rewarded=REWARD[G.level]||0;SAVE.coins+=G.rewarded;storeSave();}
+    if(!SIM)recordResult();
     if(!SIM){const mine=G.cpu!=null?1-G.cpu:(NET.active?NET.me:w);sfx(w===mine?'win':'lose');if(G.rewarded)setTimeout(()=>sfx('coin'),900);}}
   render();
 }
 function damage(p,n){
   if(G.over||n<=0)return;
-  if(p.barrier){log(`バリアで${n}ダメージを無効化`);sfx('block');return;}
-  p.life-=n;log(`${pn(p.i)}に${n}ダメージ（残り${Math.max(0,p.life)}）`);sfx('damage');
+  if(p.barrier){log(`バリアで${n}ダメージを無効化`);sfx('block');fx({t:'block',pi:p.i});return;}
+  p.life-=n;log(`${pn(p.i)}に${n}ダメージ（残り${Math.max(0,p.life)}）`);sfx('damage');fx({t:'dmg',pi:p.i,n});if(isLocal(1-p.i))track('dmg',n);
   if(p.life<=0)gameOver(1-p.i,`${pn(p.i)}のライフが0になった`);
 }
 function unitAtk(p,lane){
@@ -598,7 +629,7 @@ function subFx(p,o,x){
   if(!x)return;
   if(x.dmg)damage(o,x.dmg);
   if(x.draw)drawN(p,x.draw);
-  if(x.heal){p.life+=x.heal;sfx('heal');log(`${pn(p.i)}のライフ+${x.heal}`);}
+  if(x.heal){p.life+=x.heal;sfx('heal');fx({t:'heal',pi:p.i,n:x.heal});log(`${pn(p.i)}のライフ+${x.heal}`);}
   if(x.soul)p.energy+=x.soul;
   if(x.buffAll)p.field.forEach(u=>{if(u)u.temp+=x.buffAll;});
   if(x.debuffAll)o.field.forEach(u=>{if(u)u.debuff=Math.max(u.debuff||0,x.debuffAll);});
@@ -613,15 +644,15 @@ function reviveOne(p){
 function place(p,id,lane,isPartner){
   const c=C[id];
   p.field[lane]={id,summoned:true,atkLeft:atkTimes(c),temp:0,debuff:0,shield:!!c.shield,partner:!!isPartner};
-  log(`${c.name}を${LANE2[lane]}に出した`);sfx('summon');
+  log(`${c.name}を${LANE2[lane]}に出した`);sfx('summon');fx({t:'summon',pi:p.i,lane});if(isLocal(p.i))track('summon');
   const o=G.p[1-p.i];
   subFx(p,o,c.enter);
   if(c.enter&&c.enter.front){const t=o.field[lane];if(t&&!C[t.id].ward&&C[t.id].def<=c.enter.front)destroy(o,lane);}
 }
 function destroy(p,lane){
   const u=p.field[lane];if(!u)return false;
-  if(u.shield){u.shield=false;sfx('block');log(`${C[u.id].name}は幻影で破壊を防いだ`);return false;}
-  p.field[lane]=null;log(`${C[u.id].name}が破壊された`);sfx('destroy');
+  if(u.shield){u.shield=false;sfx('block');fx({t:'block',pi:p.i,lane});log(`${C[u.id].name}は幻影で破壊を防いだ`);return false;}
+  p.field[lane]=null;log(`${C[u.id].name}が破壊された`);sfx('destroy');fx({t:'destroy',pi:p.i,lane});if(isLocal(1-p.i))track('kill');
   if(u.partner){p.buddy='gone';log('パートナーは墓地へ');}
   p.grave.push(u.id);
   const d=C[u.id].death;
@@ -666,7 +697,7 @@ function applyFx(p,o,c,target){
     switch(f.k){
       case 'dmg':damage(o,f.n+(f.p&&partnerOn(p)?f.p:0));break;
       case 'draw':drawN(p,f.n);break;
-      case 'heal':p.life+=f.n;sfx('heal');log(`ライフ+${f.n}`);break;
+      case 'heal':p.life+=f.n;sfx('heal');fx({t:'heal',pi:p.i,n:f.n});log(`ライフ+${f.n}`);break;
       case 'soul':p.energy+=f.n;break;
       case 'barrier':p.barrier=true;log('次の相手ターン、ライフへのダメージは0');break;
       case 'kill':if(tu())destroy(o,target.lane);break;
@@ -696,7 +727,7 @@ function useCard(target){
     if(!p.buddyCalled){p.buddyCalled=true;p.life+=1;log('パートナーを初めて呼んだのでライフ+1');}
   }else if(c.type==='monster'){place(p,c.id,target.lane,false);}
   else{
-    log(`${c.name}を使った`);sfx(c.type==='finisher'?'burst':'spell');
+    log(`${c.name}を使った`);sfx(c.type==='finisher'?'burst':'spell');if(c.type==='finisher'){fx({t:'burst'});if(isLocal(p.i))track('burst');}
     if(c.type==='finisher')p.finUsed=true;
     applyFx(p,o,c,target);
     p.grave.push(c.id);
@@ -718,7 +749,7 @@ function attackAt(lanes,target){
   if(target==='player'){if(!canHitPlayer(lanes))return;}
   else{if(!o.field[target])return;}
   const us=lanes.map(l=>p.field[l]),sum=lanes.reduce((a,l)=>a+unitAtk(p,l),0);
-  us.forEach(u=>u.atkLeft--);sfx('attack');
+  us.forEach(u=>u.atkLeft--);sfx('attack');fx({t:'attack',pi:p.i,lanes});if(target!=='player')fx({t:'hit',pi:o.i,lane:target});if(lanes.length>1&&isLocal(p.i))track('link');
   const names=us.map(u=>C[u.id].name).join('と'),link=lanes.length>1?'連携攻撃！':'';
   if(target==='player'){log(`${link}${names}が本体にアタック`);damage(o,us.reduce((a,u)=>a+C[u.id].hit,0));}
   else{
@@ -931,12 +962,13 @@ function startOnline(){
   const mine=deckById(NET.deckId);
   NET.active=true;NET.me=0;NET.oppLeft=false;
   G={p:[makePlayer(mine,0),makePlayer(NET.oppDeck,1)],log:[],over:null,passing:false,phase:'draw',cpu:null,level:null,needStart:false};
-  G.cur=Math.random()<.5?0:1;G.first=G.cur;sel=null;scr='game';showRules=false;
+  G.cur=Math.random()<.5?0:1;G.first=G.cur;sel=null;scr='game';showRules=false;RESULT_DONE=false;NET.started=true;track('online');
   log(`${pn(G.cur)}が先攻`);nextTurn();
 }
 function adopt(st,sq){
   G=structuredClone(st);NET.seq=sq;NET.lastJSON=JSON.stringify(st);
   if(!NET.active){NET.active=true;NET.me=1;}
+  if(!G.over){if(RESULT_DONE||!NET.started){RESULT_DONE=false;NET.started=true;track('online');}}else recordResult();
   scr='game';sel=null;
   if(G.cur===NET.me&&G.needStart&&!G.over){G.needStart=false;startTurn();}else render();
 }
@@ -1084,6 +1116,124 @@ function soundHTML(){
     <label class="vol">音量<input type="range" min="0" max="100" step="5" value="${Math.round(SND.set.vol*100)}" data-act="snd-vol" aria-label="音量"></label></div>`;
 }
 
+/* ===== 演出 ===== */
+const FXQ=[];
+function fx(e){if(!SIM&&scr==='game')FXQ.push(e);}
+function flushFx(){
+  if(!FXQ.length)return;const list=FXQ.splice(0);
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  if(typeof document.createElement!=='function'||typeof requestAnimationFrame!=='function')return;
+  requestAnimationFrame(()=>list.forEach(e=>{try{runFx(e);}catch(x){}}));
+}
+const slotEl=(pi,lane)=>document.querySelector(`.slot[data-pi="${pi}"][data-lane="${lane}"]`);
+const infoEl=pi=>document.querySelector(`.info[data-pi="${pi}"]`);
+function floatText(el,text,cls){
+  if(!el)return;const r=el.getBoundingClientRect(),d=document.createElement('div');
+  d.className='floattx '+cls;d.textContent=text;d.style.left=(r.left+r.width/2)+'px';d.style.top=(r.top+r.height/2)+'px';
+  document.body.appendChild(d);setTimeout(()=>d.remove(),1100);
+}
+function anim(el,cls,ms){if(!el)return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms||500);}
+function runFx(e){
+  switch(e.t){
+    case 'summon':anim(slotEl(e.pi,e.lane),'fx-pop',500);break;
+    case 'attack':e.lanes.forEach(l=>anim(slotEl(e.pi,l),e.pi===viewIdx()?'fx-lunge-up':'fx-lunge-down',450));break;
+    case 'hit':anim(slotEl(e.pi,e.lane),'fx-shake',400);break;
+    case 'destroy':{const el=slotEl(e.pi,e.lane);anim(el,'fx-break',650);floatText(el,'💥','boom');break;}
+    case 'dmg':{const el=infoEl(e.pi);anim(el,'fx-shake',400);floatText(el,'-'+e.n,'dmg');break;}
+    case 'heal':floatText(infoEl(e.pi),'+'+e.n,'heal');break;
+    case 'block':floatText(e.lane!=null?slotEl(e.pi,e.lane):infoEl(e.pi),'ガード','block');break;
+    case 'burst':{const d=document.createElement('div');d.className='fx-flash';document.body.appendChild(d);setTimeout(()=>d.remove(),900);break;}
+  }
+}
+/* ===== 戦績・ミッション ===== */
+const MISSIONS=[
+ {id:'win1',text:'CPU戦で1回勝つ',goal:1,ev:'win',reward:50},
+ {id:'win3',text:'CPU戦で3回勝つ',goal:3,ev:'win',reward:120},
+ {id:'winHard',text:'ふつう以上のCPUに勝つ',goal:1,ev:'winHard',reward:100},
+ {id:'winD',text:'ドラゴンのデッキでCPUに勝つ',goal:1,ev:'win_dragon',reward:80},
+ {id:'winM',text:'マシンのデッキでCPUに勝つ',goal:1,ev:'win_machine',reward:80},
+ {id:'winW',text:'マジックのデッキでCPUに勝つ',goal:1,ev:'win_magic',reward:80},
+ {id:'summon10',text:'モンスターを10体召喚する',goal:10,ev:'summon',reward:60},
+ {id:'kill5',text:'相手のモンスターを5体破壊する',goal:5,ev:'kill',reward:60},
+ {id:'link3',text:'連携攻撃を3回する',goal:3,ev:'link',reward:60},
+ {id:'burst1',text:'ソウルバーストを使う',goal:1,ev:'burst',reward:50},
+ {id:'dmg15',text:'相手に合計15ダメージを与える',goal:15,ev:'dmg',reward:60},
+ {id:'pack1',text:'パックを1つ開ける',goal:1,ev:'pack',reward:30},
+ {id:'online1',text:'通信対戦を1回遊ぶ',goal:1,ev:'online',reward:60},
+];
+const todayStr=()=>{const d=new Date();return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;};
+function ensureDaily(){
+  const t=todayStr();if(SAVE.daily&&SAVE.daily.date===t)return;
+  let h=0;for(const ch of t)h=(h*31+ch.charCodeAt(0))>>>0;
+  const pool=MISSIONS.map(m=>m.id),ids=[];
+  while(ids.length<3){h=(h*1103515245+12345)>>>0;const id=pool[h%pool.length];if(!ids.includes(id))ids.push(id);}
+  SAVE.daily={date:t,ids,prog:{},claimed:{}};storeSave();
+}
+function track(ev,n){
+  if(SIM)return;ensureDaily();let ch=false;
+  for(const id of SAVE.daily.ids){const m=MISSIONS.find(x=>x.id===id);if(m&&m.ev===ev){SAVE.daily.prog[id]=Math.min(m.goal,(SAVE.daily.prog[id]||0)+(n||1));ch=true;}}
+  if(ch)storeSave();
+}
+const missionReady=()=>{ensureDaily();return SAVE.daily.ids.filter(id=>{const m=MISSIONS.find(x=>x.id===id);return (SAVE.daily.prog[id]||0)>=m.goal&&!SAVE.daily.claimed[id];}).length;};
+const isLocal=pi=>!!G&&(G.cpu!=null?pi!==G.cpu:(NET.active?pi===NET.me:false));
+let RESULT_DONE=false;
+function recordResult(){
+  if(RESULT_DONE||!G||!G.over)return;RESULT_DONE=true;
+  const st=SAVE.stats;
+  if(G.cpu!=null){
+    const mine=1-G.cpu,won=G.over.w===mine,fac=G.p[mine].fac;
+    st.cpu[G.level][won?0:1]++;st.fac[fac][won?0:1]++;
+    if(won){track('win');if(G.level!=='easy')track('winHard');track('win_'+fac);}
+  }else if(NET.active){
+    const won=G.over.w===NET.me;st.online[won?0:1]++;st.fac[G.p[NET.me].fac][won?0:1]++;
+  }else return;
+  storeSave();
+}
+function missionHTML(){
+  ensureDaily();const st=SAVE.stats;
+  const wl=a=>`${a[0]}勝 ${a[1]}敗${a[0]+a[1]?`（勝率${Math.round(a[0]*100/(a[0]+a[1]))}%）`:''}`;
+  return `<div class="top"><button class="btn sub" data-act="go-title">戻る</button><h2>ミッション・戦績</h2></div>
+  <div class="box stack"><b>今日のミッション</b><span style="font-size:12px;color:var(--muted)">毎日0時に入れ替わります</span>
+  ${SAVE.daily.ids.map(id=>{const m=MISSIONS.find(x=>x.id===id),v=SAVE.daily.prog[id]||0,done=v>=m.goal,got=SAVE.daily.claimed[id];
+    return `<div class="mis"><div class="mt"><span>${esc(m.text)}</span><span class="mr">${m.reward}コイン</span></div>
+      <div class="bar"><span style="width:${Math.round(v*100/m.goal)}%"></span></div>
+      <div class="mt"><span style="font-size:12px;color:var(--muted)">${v} / ${m.goal}</span>
+      ${got?'<span style="font-size:12px;color:var(--ok)">受け取り済み</span>':`<button class="btn go" data-act="claim" data-id="${id}" ${done?'':'disabled'}>受け取る</button>`}</div></div>`;}).join('')}</div>
+  <div class="box stack"><b>戦績</b>
+    <div class="stat"><span>CPU かんたん</span><span>${wl(st.cpu.easy)}</span></div>
+    <div class="stat"><span>CPU ふつう</span><span>${wl(st.cpu.normal)}</span></div>
+    <div class="stat"><span>CPU むずかしい</span><span>${wl(st.cpu.hard)}</span></div>
+    <div class="stat"><span>通信対戦</span><span>${wl(st.online)}</span></div>
+    ${['dragon','machine','magic'].map(f=>`<div class="stat"><span class="${FCLS[f]}">${FAC[f]}で</span><span>${wl(st.fac[f])}</span></div>`).join('')}
+  </div>`;
+}
+/* ===== かけら（分解・交換） ===== */
+const SHARD_GET={C:1,UC:3,R:10,VR:30,UR:60,LR:150},SHARD_COST={C:5,UC:15,R:50,VR:150,UR:300,LR:750};
+const spare=id=>Math.max(0,owned(id)-3);
+function dismantle(id,all){
+  const n=all?spare(id):Math.min(1,spare(id));if(!n)return 0;
+  SAVE.owned[id]-=n;const g=n*SHARD_GET[C[id].rar];SAVE.shards+=g;return g;
+}
+/* ===== デッキコード ===== */
+function deckCode(d){
+  const body=Object.entries(d.cards).filter(([,n])=>n>0).sort().map(([id,n])=>id.slice(2)+n).join('');
+  const head=`RZ1-${(d.partner||d.fac[0]+'-00')[0]}${(d.partner||'X-00').slice(2)}-${body}`;
+  let h=0;for(const ch of head)h=(h*7+ch.charCodeAt(0))%1296;
+  return head+'-'+h.toString(36).toUpperCase().padStart(2,'0');
+}
+function parseDeckCode(code){
+  const m=String(code||'').trim().toUpperCase().match(/^(RZ1-([DMW])(\d\d)-((?:\d\d[1-3])+))-([0-9A-Z]{2})$/);
+  if(!m)return {err:'コードの形が正しくありません'};
+  let h=0;for(const ch of m[1])h=(h*7+ch.charCodeAt(0))%1296;
+  if(h.toString(36).toUpperCase().padStart(2,'0')!==m[5])return {err:'コードが途中で変わっているようです。もう一度コピーしてください'};
+  const L=m[2],fac=FACOF[L],cards={};let n=0;
+  for(let i=0;i<m[4].length;i+=3){const id=`${L}-${m[4].slice(i,i+2)}`,k=+m[4][i+2];if(!C[id])return {err:'このバージョンにないカードが入っています'};cards[id]=k;n+=k;}
+  if(n>DECK_SIZE)return {err:'枚数が多すぎます'};
+  const partner=`${L}-${m[3]}`;
+  return {deck:{fac,cards,partner:cards[partner]&&C[partner].type==='monster'?partner:''}};
+}
+let codeShow=null,codeIn='',codeMsg='';
+
 /* ===== 描画：カードUI ===== */
 const ICON={dragon:'🐉',machine:'⚙️',magic:'🔮'};
 function iconOf(c){return c.type==='spell'?'📜':(c.type==='finisher'?'💥':ICON[c.fac]);}
@@ -1109,11 +1259,11 @@ function isTarget(side,lane){
 }
 function slotHTML(p,side,k,pos){
   const u=p.field[k],tgt=isTarget(side,k)?' tgt':'';
-  if(!u)return `<button class="slot empty${tgt}" style="${pos}" data-act="slot" data-side="${side}" data-lane="${k}" aria-label="${LANE2[k]}（空き）">${LANE2[k]}</button>`;
+  if(!u)return `<button class="slot empty${tgt}" style="${pos}" data-pi="${p.i}" data-act="slot" data-side="${side}" data-lane="${k}" aria-label="${LANE2[k]}（空き）">${LANE2[k]}</button>`;
   let st='';
   if(side==='me'&&G.phase==='attack'&&!cpuNow()&&!netWait())st=canAttack(u,p,k)?'ready':(u.atkLeft<=0?'spent':'');
   if((sel&&sel.kind==='unit'&&sel.side===side&&sel.lane===k)||(sel&&sel.kind==='link'&&side==='me'&&sel.lanes.includes(k))||(sel&&sel.kind==='move'&&side==='me'&&sel.lane===k))st+=' sel';
-  return `<button class="slot${tgt}" style="${pos}" data-act="slot" data-side="${side}" data-lane="${k}">${cardUI(C[u.id],{tag:'span',mini:1,cls:st,atk:unitAtk(p,k),partner:u.partner,shield:u.shield})}</button>`;
+  return `<button class="slot${tgt}" style="${pos}" data-pi="${p.i}" data-act="slot" data-side="${side}" data-lane="${k}">${cardUI(C[u.id],{tag:'span',mini:1,cls:st,atk:unitAtk(p,k),partner:u.partner,shield:u.shield})}</button>`;
 }
 function pzoneHTML(p,side,pos){
   const c=C[p.buddyId];
@@ -1131,7 +1281,7 @@ function pilesHTML(p,side,pos,order){
   return `<div class="piles" style="${pos}">${order==='gd'?grave+deck:deck+grave}</div>`;
 }
 function infoHTML(p,isMe){
-  return `<div class="info ${p.fac}"><span class="life ${p.life<=4?'low':''}"><small>ライフ</small>${p.life}</span><span class="who">${pname(p.i)}</span>
+  return `<div class="info ${p.fac}" data-pi="${p.i}"><span class="life ${p.life<=4?'low':''}"><small>ライフ</small>${p.life}</span><span class="who">${pname(p.i)}</span>
     <span class="meta">${isMe?`<span>ソウル <b>${p.energy}</b></span>`:`<span>手札 <b>${p.hand.length}</b></span>`}
     ${p.barrier?'<span class="tag on">バリア</span>':''}<span class="tag ${p.finUsed?'':'on'}">バースト${p.finUsed?'済':'可'}</span></span></div>`;
 }
@@ -1265,6 +1415,7 @@ function titleHTML(){
     <button class="btn bigbtn" data-act="go-online">通信対戦</button>
     <button class="btn bigbtn" data-act="go-shop">パックを買う</button>
     <button class="btn sub" data-act="go-col">コレクション</button>
+    <button class="btn sub" data-act="go-mis">ミッション・戦績${missionReady()?`<span class="badge2">${missionReady()}</span>`:''}</button>
     <button class="btn sub" data-act="rules">ルールを見る</button>
   </div>
   <p class="coins">所持コイン <b>${SAVE.coins}</b></p>
@@ -1288,10 +1439,12 @@ function setupHTML(){
 function decksHTML(){
   return `<div class="top"><button class="btn sub" data-act="go-title">戻る</button><h2>デッキ</h2></div>
   <button class="btn go" data-act="new-deck">新しいデッキを作る</button>
+  <div class="box stack"><label class="fld"><b>デッキコードから追加</b><input type="text" data-act="codein" value="${esc(codeIn)}" placeholder="RZ1-…" autocomplete="off"></label><button class="btn" data-act="code-import">読み込む</button>${codeMsg?`<span style="font-size:12px">${esc(codeMsg)}</span>`:''}</div>
   ${myDecks().map(d=>{const err=deckError(d);return `<div class="box deck ${d.fac}">
     <span class="dn">${esc(d.name)}</span>
     <span class="dm">${FAC[d.fac]}　${deckCount(d)}枚　パートナー：${d.partner&&C[d.partner]?esc(C[d.partner].name):'未設定'}${err?'　（未完成）':''}</span>
-    <div class="btns" style="justify-content:flex-start">${d.starter?`<button class="btn sub" data-act="copy-deck" data-id="${d.id}">コピーして編集</button>`
+    ${codeShow===d.id?`<div class="codebox"><input type="text" readonly value="${esc(deckCode(d))}" onclick="this.select()"><button class="btn go" data-act="code-copy" data-code="${esc(deckCode(d))}">コピー</button></div>`:''}
+    <div class="btns" style="justify-content:flex-start"><button class="btn sub" data-act="code-show" data-id="${esc(d.id)}">コード</button>${d.starter?`<button class="btn sub" data-act="copy-deck" data-id="${d.id}">コピーして編集</button>`
       :`<button class="btn sub" data-act="edit-deck" data-id="${esc(d.id)}">編集</button><button class="btn sub" data-act="copy-deck" data-id="${esc(d.id)}">コピー</button>
         ${delId===d.id?`<button class="btn warn" data-act="del-deck" data-id="${esc(d.id)}">本当に削除する</button>`:`<button class="btn sub" data-act="ask-del" data-id="${esc(d.id)}">削除</button>`}`}</div>
   </div>`}).join('')}`;
@@ -1341,10 +1494,12 @@ function colHTML(){
   return `<div class="top"><button class="btn sub" data-act="go-title">戻る</button><h2>コレクション</h2></div>
   <div class="chips">${['dragon','machine','magic'].map(f=>`<button class="chip" aria-pressed="${colFac===f}" data-act="colfac" data-f="${f}">${FAC[f]}</button>`).join('')}</div>
   <p style="margin:0">${FAC[colFac]}　<b>${have}</b> / ${list.length} 種類</p>
+  <div class="box stack"><div class="mt"><b>かけら：${SAVE.shards}</b>${(()=>{const g=DB.reduce((a,c)=>a+spare(c.id)*SHARD_GET[c.rar],0);return `<button class="btn" data-act="dis-all" ${g?'':'disabled'}>余りを全部分解（+${g}）</button>`;})()}</div>
+  <span style="font-size:12px;color:var(--muted)">4枚目以上の余ったカードを分解すると「かけら」になり、かけらで好きなカードと交換できます</span></div>
   <div class="rows">${list.map(c=>owned(c.id)?`<div class="row in"><span class="rc">${c.cost}</span>
     <div class="rinfo"><div class="rn">${esc(c.name)}</div><div class="rt">${RARNAME[c.rar]}・${TYPE[c.type]}${c.atk!=null?`　攻${c.atk} 体${c.def} 打${c.hit}`:''}</div>${c.text?`<div class="rx">${esc(c.text)}</div>`:''}</div>
-    <b>×${owned(c.id)}</b></div>`
-   :`<div class="row"><span class="rc">${c.cost}</span><div class="rinfo"><div class="rn" style="color:var(--muted)">？？？</div><div class="rt">${RARNAME[c.rar]}・${TYPE[c.type]}・未所持</div></div></div>`).join('')}</div>`;
+    <div class="cnt" style="flex-direction:column;gap:4px"><b>×${owned(c.id)}</b>${spare(c.id)?`<button class="btn sub mini" data-act="dis" data-id="${c.id}">分解+${SHARD_GET[c.rar]}</button>`:''}${owned(c.id)<3?`<button class="btn sub mini" data-act="craft" data-id="${c.id}" ${SAVE.shards<SHARD_COST[c.rar]?'disabled':''}>交換-${SHARD_COST[c.rar]}</button>`:''}</div></div>`
+   :`<div class="row"><span class="rc">${c.cost}</span><div class="rinfo"><div class="rn" style="color:var(--muted)">${esc(c.name)}</div><div class="rt">${RARNAME[c.rar]}・${TYPE[c.type]}・未所持</div></div><button class="btn sub mini" data-act="craft" data-id="${c.id}" ${SAVE.shards<SHARD_COST[c.rar]?'disabled':''}>交換-${SHARD_COST[c.rar]}</button></div>`).join('')}</div>`;
 }
 function render(){
   if(SIM)return;
@@ -1354,7 +1509,7 @@ function render(){
   const app=$('#app'),ov=$('#ov');
   if(scr!=='game'){
     app.className='page';ov.innerHTML=rulesOv();
-    app.innerHTML={title:titleHTML,setup:setupHTML,decks:decksHTML,newdeck:newDeckHTML,edit:editHTML,shop:shopHTML,col:colHTML,online:onlineHTML,pick:pickHTML}[scr]();
+    app.innerHTML={title:titleHTML,setup:setupHTML,decks:decksHTML,newdeck:newDeckHTML,edit:editHTML,shop:shopHTML,col:colHTML,online:onlineHTML,pick:pickHTML,mis:missionHTML}[scr]();
     return;
   }
   app.className='game';
@@ -1379,6 +1534,7 @@ function render(){
   }
   ov.innerHTML=rulesOv();
   app.innerHTML=`<div class="board">${boardHTML()}</div><div class="dock">${dockHTML()}</div>`;
+  flushFx();
 }
 
 /* ===== 操作 ===== */
@@ -1404,6 +1560,16 @@ document.addEventListener('click',e=>{
   if(a==='go-decks'){scr='decks';delId=null;render();window.scrollTo(0,0);return;}
   if(a==='go-shop'){scr='shop';G=null;lastPack=null;render();window.scrollTo(0,0);return;}
   if(a==='go-col'){scr='col';render();window.scrollTo(0,0);return;}
+  if(a==='go-mis'){scr='mis';render();window.scrollTo(0,0);return;}
+  if(a==='claim'){ensureDaily();const m=MISSIONS.find(x=>x.id===el.dataset.id);if(m&&(SAVE.daily.prog[m.id]||0)>=m.goal&&!SAVE.daily.claimed[m.id]){SAVE.daily.claimed[m.id]=true;SAVE.coins+=m.reward;storeSave();sfx('coin');}render();return;}
+  if(a==='dis'){if(dismantle(el.dataset.id,false)){storeSave();sfx('coin');}const y=window.scrollY;render();window.scrollTo(0,y);return;}
+  if(a==='dis-all'){let g=0;DB.forEach(c=>{g+=dismantle(c.id,true);});if(g){storeSave();sfx('coin');}const y=window.scrollY;render();window.scrollTo(0,y);return;}
+  if(a==='craft'){const id=el.dataset.id,c=C[id];if(c&&owned(id)<3&&SAVE.shards>=SHARD_COST[c.rar]){SAVE.shards-=SHARD_COST[c.rar];SAVE.owned[id]=owned(id)+1;storeSave();sfx(['VR','UR','LR'].includes(c.rar)?'rare':'pack');}const y=window.scrollY;render();window.scrollTo(0,y);return;}
+  if(a==='code-show'){codeShow=codeShow===el.dataset.id?null:el.dataset.id;const y=window.scrollY;render();window.scrollTo(0,y);return;}
+  if(a==='code-copy'){const code=el.dataset.code;const done=()=>{el.textContent='コピーしました';};try{navigator.clipboard.writeText(code).then(done,()=>{el.textContent='長押しでコピー';});}catch(e){el.textContent='長押しでコピー';}return;}
+  if(a==='code-import'){const r=parseDeckCode(codeIn);if(r.err){codeMsg=r.err;render();return;}
+    const d={id:'d'+Date.now().toString(36),name:`${FAC[r.deck.fac]}（コードから）`,...r.deck};MY.push(d);saveDecks(MY);codeIn='';
+    const e2=deckError(d);codeMsg=e2?`追加しました。ただし未完成です：${e2}`:'追加しました！このデッキで対戦できます';render();return;}
   if(a==='buy'){buyPack();return;}
   if(a==='pick-starter'){const d=STARTERS.find(x=>x.id===el.dataset.id);if(!d||SAVE.starter)return;SAVE.starter=d.id;SAVE.owned={...d.cards};storeSave();setup.d[0]=d.id;NET.deckId=d.id;scr='title';render();window.scrollTo(0,0);return;}
   if(a==='colfac'){colFac=el.dataset.f;render();return;}
@@ -1478,7 +1644,7 @@ document.addEventListener('change',e=>{
   if(el.dataset.act==='partner'){ED.partner=el.value;saveMsg='';render();}
   if(el.dataset.act==='netdeck'){NET.deckId=el.value;render();}
 });
-document.addEventListener('input',e=>{if(e.target.dataset.act==='snd-vol'){SND.set.vol=(+e.target.value)/100;if(SND.master)SND.master.gain.value=SND.set.vol;sndSave();return;}if(e.target.dataset.act==='name')ED.name=e.target.value;if(e.target.dataset.act==='code')NET.codeInput=e.target.value.replace(/\D/g,'');});
+document.addEventListener('input',e=>{if(e.target.dataset.act==='codein'){codeIn=e.target.value;return;}if(e.target.dataset.act==='snd-vol'){SND.set.vol=(+e.target.value)/100;if(SND.master)SND.master.gain.value=SND.set.vol;sndSave();return;}if(e.target.dataset.act==='name')ED.name=e.target.value;if(e.target.dataset.act==='code')NET.codeInput=e.target.value.replace(/\D/g,'');});
 render();
 </script>
 <script>
