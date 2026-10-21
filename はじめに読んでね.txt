@@ -1,0 +1,9 @@
+レゾナンス（PWA版） v0.30
+
+このフォルダの中身（7つのファイル）を、すべてそのままGitHubにアップロードしてください。
+・index.html ………… ゲーム本体
+・manifest.webmanifest … ホーム画面に追加するための設定
+・sw.js ……………… オフラインで遊ぶための仕組み
+・icon-192.png / icon-512.png / icon-maskable-512.png / apple-touch-icon.png … アプリのアイコン
+
+ゲームを更新するときは、index.html と sw.js を新しいものに差し替えてください。
