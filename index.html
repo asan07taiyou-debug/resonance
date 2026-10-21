@@ -532,7 +532,7 @@ const STARTERS=[
  {id:'st-machine',starter:1,name:'スターター：マシン',fac:'machine',partner:'M-00',
   cards:{'M-00':1,'M-01':2,'M-02':3,'M-03':2,'M-04':2,'M-05':2,'M-06':2,'M-07':2,'M-08':2,'M-09':2,'M-18':2,'M-22':2,'M-35':2,'M-40':2,'M-25':1,'M-29':1}},
  {id:'st-magic',starter:1,name:'スターター：マジック',fac:'magic',partner:'W-00',
-  cards:{'W-00':1,'W-01':2,'W-02':3,'W-03':2,'W-04':2,'W-05':2,'W-06':2,'W-07':2,'W-08':2,'W-09':2,'W-14':2,'W-17':2,'W-35':2,'W-30':2,'W-22':1,'W-26':1}},
+  cards:{'W-00':1,'W-01':2,'W-02':3,'W-28':2,'W-04':2,'W-05':2,'W-11':2,'W-07':2,'W-44':2,'W-09':2,'W-14':2,'W-17':2,'W-35':2,'W-30':2,'W-22':1,'W-26':1}},
 ];
 const KEY='resonance.decks.v1';
 function loadDecks(){try{const v=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}}
@@ -547,6 +547,9 @@ function loadSave(){try{const v=JSON.parse(localStorage.getItem(SKEY)||'null');i
 function storeSave(){try{localStorage.setItem(SKEY,JSON.stringify(SAVE));return true;}catch(e){return false;}}
 let SAVE=loadSave();storeSave();
 const owned=id=>SAVE.owned[id]||0;
+/* スターターの中身が変わったとき、足りないカードを配る（v0.37でマジックのスターターを変更） */
+(function topUpStarter(){const st=STARTERS.find(d=>d.id===SAVE.starter);if(!st)return;let ch=false;
+  for(const [id,n] of Object.entries(st.cards))if(owned(id)<n){SAVE.owned[id]=n;ch=true;}if(ch)storeSave();})();
 let lastPack=null, colFac='dragon';
 function buyPack(){
   if(SAVE.coins<PACK_PRICE)return;
@@ -573,7 +576,7 @@ function deckError(d,free){
 }
 
 /* ===== 状態 ===== */
-const APP_VER='0.36';
+const APP_VER='0.37';
 let scr='splash', G=null, sel=null, showRules=false, ED=null, delId=null, edFilter='all', saveMsg='';
 let setup={d:['st-dragon','st-machine'],mode:'cpu',level:'normal'};
 const LEVELS={easy:'かんたん',normal:'ふつう',hard:'むずかしい'};
