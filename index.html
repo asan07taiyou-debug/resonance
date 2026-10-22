@@ -313,6 +313,36 @@ select,input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px so
 .lday:last-child b{color:var(--gold)}
 .gotach{opacity:.6}
 .ovbox .bonusl{margin:2px 0;font-size:15px;color:var(--gold);font-weight:800}
+
+.cgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 8px}
+@media (min-width:560px){.cgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (min-width:820px){.cgrid{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.cgcell{display:flex;flex-direction:column;gap:4px;min-width:0}
+.cgcell .cardui{min-height:150px;cursor:pointer}
+.cgcell .cardui .ci{height:64px}
+.cgcell.in .cardui{box-shadow:0 0 0 3px var(--gold)}
+.cgcell.no .cardui{filter:grayscale(1);opacity:.45}
+.cghave{text-align:center;font-size:12px;font-weight:800;color:var(--ink)}
+.cgcell.no .cghave{color:var(--muted);font-weight:400}
+.sparemk{margin-left:4px;font-size:10px;font-weight:700;color:#fff;background:var(--gold);border-radius:99px;padding:0 6px}
+.cgcnt{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.cgcnt button{width:32px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:18px;font-weight:800;color:var(--ink);cursor:pointer}
+.cgcnt button:disabled{opacity:.35;cursor:default}
+.cgcnt b{font-size:15px}.cgcnt small{font-size:10px;color:var(--muted);font-weight:400}
+.cgcnt.big{justify-content:center;gap:14px}.cgcnt.big button{width:46px;height:40px}
+.zoombox{max-height:92vh;overflow-y:auto}
+.bigcard{width:min(240px,64vw);margin:0 auto 10px}
+.bigcard .cardui{min-height:330px}
+.bigcard .cardui .ci{height:170px}
+.bigcard .cardui .cn{font-size:15px;-webkit-line-clamp:3}
+.bigcard .cardui .cc{width:26px;height:26px;font-size:15px}
+.bigcard .cardui .cx{font-size:13px;line-height:1.45}
+.bigcard .cardui .cs{font-size:14px}
+.bigcard .cardui .ct{font-size:11px}
+.bigcard .cardui .rar{font-size:11px}
+.bigcard.no .cardui{filter:grayscale(.85)}
+.zinfo{display:flex;flex-direction:column;gap:4px;text-align:left;margin-bottom:10px}
+.zinfo p{margin:2px 0;font-size:14px;line-height:1.55}
 .badge2{display:inline-block;margin-left:6px;min-width:18px;padding:0 5px;border-radius:99px;background:var(--danger);color:#fff;font-size:11px}
 .codebox{display:flex;gap:6px}.codebox input{flex:1;font-size:12px;padding:8px}
 .savecode{width:100%;min-height:96px;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;color:inherit;word-break:break-all;resize:vertical;box-sizing:border-box}
@@ -724,7 +754,7 @@ function deckError(d,free){
 }
 
 /* ===== 状態 ===== */
-const APP_VER='0.47';
+const APP_VER='0.48';
 /* ===== ストーリーモード（v0.45） ===== */
 const STORY_PRO=[
  ['ナレーション','はるか昔、ある文明が、強大な存在の「魂」をカードに封じ込めた。'],
@@ -986,9 +1016,31 @@ function winBonus(mine){
   if(SAVE.streak%3===0)b.push([`${SAVE.streak}連勝`,50]);
   G.bonus=b;return b.reduce((a,x)=>a+x[1],0);
 }
+
+/* ===== カードを絵で見る（v0.48）：並べ替え・拡大表示 ===== */
+let cardSort='cost',colShow='all',ZOOM=null;
+const SORTS=[['cost','コスト順'],['rar','レア度順'],['atk','攻撃力順'],['type','種類順']];
+const RARORD={C:0,UC:1,R:2,VR:3,UR:4,LR:5},TYPEORD={monster:0,spell:1,finisher:2};
+function sortCards(list){const a=[...list];const by={cost:c=>[c.cost,TYPEORD[c.type]],rar:c=>[-RARORD[c.rar],c.cost],atk:c=>[-(c.atk??-1),c.cost],type:c=>[TYPEORD[c.type],c.cost]}[cardSort]||(c=>[c.cost]);
+  return a.sort((x,y)=>{const p=by(x),q=by(y);for(let i=0;i<p.length;i++)if(p[i]!==q[i])return p[i]-q[i];return x.id<y.id?-1:1;});}
+function zoomOv(){
+  const c=C[ZOOM&&ZOOM.id];if(!c)return '';const n=owned(c.id);
+  let act='';
+  if(scr==='edit'&&ED){const k=ED.cards[c.id]||0,mx=Math.min(3,n);
+    act=`<div class="cgcnt big"><button data-act="dec" data-id="${c.id}" ${k?'':'disabled'} aria-label="1枚減らす">−</button><b>デッキに ${k}<small>/${mx}</small></b><button data-act="inc" data-id="${c.id}" ${k>=mx||deckCount(ED)>=DECK_SIZE?'disabled':''} aria-label="1枚増やす">＋</button></div>
+    ${c.type==='monster'&&k?(ED.partner===c.id?'<p class="dm">このカードがパートナーです</p>':`<button class="btn" data-act="setpartner" data-id="${c.id}">パートナーにする</button>`):''}`;}
+  if(scr==='col'){act=`${spare(c.id)?`<button class="btn" data-act="dis" data-id="${c.id}">1枚分解（かけら+${SHARD_GET[c.rar]}）</button>`:''}
+    ${n<3?`<button class="btn" data-act="craft" data-id="${c.id}" ${SAVE.shards<SHARD_COST[c.rar]?'disabled':''}>かけら${SHARD_COST[c.rar]}で交換（所持 ${SAVE.shards}）</button>`:''}`;}
+  return `<div class="ov zoomov" data-act="zoom-close"><div class="ovbox zoombox" data-act="noop">
+    <div class="bigcard ${n?'':'no'}">${cardUI(c,{tag:'div'})}</div>
+    <div class="zinfo"><b>${esc(c.name)}</b><span class="dm">${FAC[c.fac]}・${TYPE[c.type]}・${RARNAME[c.rar]}・コスト${c.cost}${c.atk!=null?`・攻${c.atk} 体${c.def} 打${c.hit}`:''}</span>
+      ${c.text?`<p>${esc(c.text)}</p>`:'<p class="dm">（能力なし）</p>'}<span>所持：${n?`${n}枚`:'まだ持っていません'}</span></div>
+    ${act}<button class="btn sub" data-act="zoom-close">閉じる</button></div></div>`;
+}
 /* ===== お知らせ（パッチノート）v0.44 =====
    遊ぶ人向けの更新内容。新しいものを先頭に足す。important:true は更新後の起動時に自動で表示する */
 const NEWS=[
+ {v:'0.48',date:'2026-10-22',title:'コレクションとデッキ作りでカードが見えるように',items:['コレクションとデッキ作りの画面で、カードを絵つきで並べて表示するようにしました','カードをタップすると大きく表示され、効果をじっくり読めます。分解・交換や、デッキの枚数変更・パートナー設定もそこからできます','コスト順・レア度順・攻撃力順・種類順に並べ替えられます。コレクションは「持っている／持っていない」で絞り込めます']},
  {v:'0.47',date:'2026-10-22',title:'連続ログインの実績を追加',items:['7日・30日・100日連続でログインすると、実績でコインがもらえます（100・300・500コイン）','これまでの連続日数も数に入っています']},
  {v:'0.46',date:'2026-10-22',title:'コインの手に入れ方が増えました',items:['ログインボーナス：毎日最初に開くとコイン。7日続けると200コイン','実績：一度だけもらえる目標が28個。「ミッション・実績・戦績」から受け取れます','勝ち方ボーナス：CPU戦でノーダメージ勝利+30、ソウルバーストでとどめ+20、3連勝ごとに+50']},
  {v:'0.45',date:'2026-10-22',title:'ストーリーモードが始まりました',items:['タイトルの「ストーリー」から遊べます。竜・機械・魔法の三つの地を巡り、各章のボスに挑みます（全15ステージ）','初めて勝つとコインとカードがもらえます。各ステージの★チャレンジを達成すると、さらに+50コイン','デイリーミッションに「ストーリーで1回勝つ」が加わりました']},
@@ -2057,12 +2109,12 @@ function editHTML(){
   <label class="fld"><b>パートナー</b><select data-act="partner"><option value="">（デッキのモンスターから選ぶ）</option>
     ${mons.map(c=>`<option value="${c.id}" ${d.partner===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label>
   <div class="chips">${[['all','すべて'],['in','デッキ内'],['monster','モンスター'],['spell','呪文'],['finisher','バースト']].map(([k,l])=>`<button class="chip" aria-pressed="${edFilter===k}" data-act="filter" data-f="${k}">${l}</button>`).join('')}</div>
-  <div class="rows">${pool.map(c=>{const k=d.cards[c.id]||0;return `<div class="row${k?' in':''}">
-    <span class="rc">${c.cost}</span>
-    <div class="rinfo"><div class="rn">${esc(c.name)}${d.partner===c.id?' <span class="pmark">パートナー</span>':''}</div>
-      <div class="rt">${RARNAME[c.rar]}・${TYPE[c.type]}${c.atk!=null?`　攻${c.atk} 体${c.def} 打${c.hit}`:''}　所持${owned(c.id)}</div>${c.text?`<div class="rx">${esc(c.text)}</div>`:''}</div>
-    <div class="cnt"><button data-act="dec" data-id="${c.id}" ${k?'':'disabled'} aria-label="${esc(c.name)}を1枚減らす">−</button><b>${k}</b><button data-act="inc" data-id="${c.id}" ${k>=Math.min(3,owned(c.id))||n>=DECK_SIZE?'disabled':''} aria-label="${esc(c.name)}を1枚増やす">＋</button></div>
+  <div class="chips">${SORTS.map(([k,l])=>`<button class="chip" aria-pressed="${cardSort===k}" data-act="csort" data-k="${k}">${l}</button>`).join('')}</div>
+  <div class="cgrid">${sortCards(pool).map(c=>{const k=d.cards[c.id]||0,mx=Math.min(3,owned(c.id));return `<div class="cgcell${k?' in':''}">
+    ${cardUI(c,{attrs:`data-act="zoom" data-id="${c.id}" aria-label="${esc(c.name)}を大きく見る"`,partner:d.partner===c.id})}
+    <div class="cgcnt"><button data-act="dec" data-id="${c.id}" ${k?'':'disabled'} aria-label="${esc(c.name)}を1枚減らす">−</button><b>${k}<small>/${mx}</small></b><button data-act="inc" data-id="${c.id}" ${k>=mx||n>=DECK_SIZE?'disabled':''} aria-label="${esc(c.name)}を1枚増やす">＋</button></div>
   </div>`}).join('')||'<p style="color:var(--muted)">ここに表示するカードはありません。</p>'}</div>
+  <p style="margin:0;font-size:12px;color:var(--muted)">カードをタップすると大きく見られます</p>
   <p style="margin:0;font-size:12px;color:var(--muted)">持っているカードだけ表示しています。カードはパックで集められます。</p>
   <div class="savebar"><span class="msg ${err?'':'ok'}">${esc(saveMsg||err||'このデッキで対戦できます')}</span><button class="btn go" data-act="save-deck">保存</button></div>`;
 }
@@ -2097,10 +2149,12 @@ function colHTML(){
   <p style="margin:0">${FAC[colFac]}　<b>${have}</b> / ${list.length} 種類</p>
   <div class="box stack"><div class="mt"><b>かけら：${SAVE.shards}</b>${(()=>{const g=DB.reduce((a,c)=>a+spare(c.id)*SHARD_GET[c.rar],0);return `<button class="btn" data-act="dis-all" ${g?'':'disabled'}>余りを全部分解（+${g}）</button>`;})()}</div>
   <span style="font-size:12px;color:var(--muted)">4枚目以上の余ったカードを分解すると「かけら」になり、かけらで好きなカードと交換できます</span></div>
-  <div class="rows">${list.map(c=>owned(c.id)?`<div class="row in"><span class="rc">${c.cost}</span>
-    <div class="rinfo"><div class="rn">${esc(c.name)}</div><div class="rt">${RARNAME[c.rar]}・${TYPE[c.type]}${c.atk!=null?`　攻${c.atk} 体${c.def} 打${c.hit}`:''}</div>${c.text?`<div class="rx">${esc(c.text)}</div>`:''}</div>
-    <div class="cnt" style="flex-direction:column;gap:4px"><b>×${owned(c.id)}</b>${spare(c.id)?`<button class="btn sub mini" data-act="dis" data-id="${c.id}">分解+${SHARD_GET[c.rar]}</button>`:''}${owned(c.id)<3?`<button class="btn sub mini" data-act="craft" data-id="${c.id}" ${SAVE.shards<SHARD_COST[c.rar]?'disabled':''}>交換-${SHARD_COST[c.rar]}</button>`:''}</div></div>`
-   :`<div class="row"><span class="rc">${c.cost}</span><div class="rinfo"><div class="rn" style="color:var(--muted)">${esc(c.name)}</div><div class="rt">${RARNAME[c.rar]}・${TYPE[c.type]}・未所持</div></div><button class="btn sub mini" data-act="craft" data-id="${c.id}" ${SAVE.shards<SHARD_COST[c.rar]?'disabled':''}>交換-${SHARD_COST[c.rar]}</button></div>`).join('')}</div>`;
+  <div class="chips">${[['all','すべて'],['have','持っている'],['not','持っていない']].map(([k,l])=>`<button class="chip" aria-pressed="${colShow===k}" data-act="colshow" data-k="${k}">${l}</button>`).join('')}</div>
+  <div class="chips">${SORTS.map(([k,l])=>`<button class="chip" aria-pressed="${cardSort===k}" data-act="csort" data-k="${k}">${l}</button>`).join('')}</div>
+  <div class="cgrid">${sortCards(list.filter(c=>colShow==='all'||(colShow==='have'?owned(c.id):!owned(c.id)))).map(c=>{const n=owned(c.id);return `<div class="cgcell${n?'':' no'}">
+    ${cardUI(c,{attrs:`data-act="zoom" data-id="${c.id}" aria-label="${esc(c.name)}を大きく見る"`})}
+    <div class="cghave">${n?`×${n}${spare(c.id)?'<span class="sparemk">余り</span>':''}`:'未所持'}</div></div>`;}).join('')||'<p style="color:var(--muted)">ここに表示するカードはありません。</p>'}</div>
+  <p style="margin:0;font-size:12px;color:var(--muted)">カードをタップすると大きく見られます。分解・交換もそこからできます</p>`;
 }
 function render(){
   if(SIM)return;
@@ -2111,7 +2165,8 @@ function render(){
   const app=$('#app'),ov=$('#ov');
   if(scr!=='game'){
     if(scr==='title')checkLogin();
-    app.className='page';ov.innerHTML=scr==='story'&&STV.talk?talkOv():(scr==='title'&&LOGIN_POP?loginOv():rulesOv());
+    if(ZOOM&&scr!=='col'&&scr!=='edit')ZOOM=null;
+    app.className='page';ov.innerHTML=ZOOM?zoomOv():scr==='story'&&STV.talk?talkOv():(scr==='title'&&LOGIN_POP?loginOv():rulesOv());
     app.innerHTML={title:titleHTML,setup:setupHTML,decks:decksHTML,newdeck:newDeckHTML,edit:editHTML,shop:shopHTML,col:colHTML,online:onlineHTML,pick:pickHTML,mis:missionHTML,tut:tutHTML,save:saveHTML,news:newsHTML,story:storyHTML}[scr]();
     return;
   }
@@ -2216,6 +2271,12 @@ document.addEventListener('click',e=>{
   if(a==='ask-del'){delId=el.dataset.id;render();return;}
   if(a==='del-deck'){MY=MY.filter(d=>d.id!==el.dataset.id);saveDecks(MY);delId=null;render();return;}
   if(a==='filter'){edFilter=el.dataset.f;render();return;}
+  if(a==='csort'){cardSort=el.dataset.k;render();return;}
+  if(a==='colshow'){colShow=el.dataset.k;render();return;}
+  if(a==='zoom'){ZOOM={id:el.dataset.id};sfx('tap');render();return;}
+  if(a==='zoom-close'){ZOOM=null;render();return;}
+  if(a==='noop')return;
+  if(a==='setpartner'){if(ED&&ED.cards[el.dataset.id]){ED.partner=el.dataset.id;saveMsg='';}render();return;}
   if(a==='mode'){setup.mode=el.dataset.m;render();return;}
   if(a==='level'){setup.level=el.dataset.l;render();return;}
   if(a==='inc'||a==='dec'){
