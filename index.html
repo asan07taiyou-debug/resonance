@@ -304,6 +304,15 @@ select,input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px so
 .pickone .dm{font-size:10px;line-height:1.35}
 .talkov{align-items:flex-end!important;padding-bottom:12px}
 .dm{color:var(--muted);font-size:12px}
+
+.loginrow{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:6px 0}
+.lday{border:1px solid var(--line);border-radius:8px;padding:4px 0;display:flex;flex-direction:column;align-items:center;font-size:10px;color:var(--muted)}
+.lday b{font-size:13px;color:var(--ink)}
+.lday.past{opacity:.45}
+.lday.today{border:2px solid var(--gold);background:color-mix(in srgb,var(--gold) 18%,transparent)}
+.lday:last-child b{color:var(--gold)}
+.gotach{opacity:.6}
+.ovbox .bonusl{margin:2px 0;font-size:15px;color:var(--gold);font-weight:800}
 .badge2{display:inline-block;margin-left:6px;min-width:18px;padding:0 5px;border-radius:99px;background:var(--danger);color:#fff;font-size:11px}
 .codebox{display:flex;gap:6px}.codebox input{flex:1;font-size:12px;padding:8px}
 .savecode{width:100%;min-height:96px;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;color:inherit;word-break:break-all;resize:vertical;box-sizing:border-box}
@@ -612,7 +621,11 @@ let MY=loadDecks();
 const PACK_PRICE=100, PACK_SIZE=5, REWARD={easy:50,normal:100,hard:200};
 const SKEY='resonance.save.v2';
 function freshSave(){return {coins:0,owned:{},starter:null};}
-function normSave(v){if(typeof v.shards!=='number')v.shards=0;if(!v.stats)v.stats={cpu:{easy:[0,0],normal:[0,0],hard:[0,0]},online:[0,0],fac:{dragon:[0,0],machine:[0,0],magic:[0,0]}};if(!('daily' in v))v.daily=null;if(!v.story||typeof v.story!=='object')v.story={};const S=v.story;if(!S.clear||typeof S.clear!=='object')S.clear={};if(!S.star||typeof S.star!=='object')S.star={};S.pro=!!S.pro;S.urPending=!!S.urPending;return v;}
+function normSave(v){if(typeof v.shards!=='number')v.shards=0;if(!v.stats)v.stats={cpu:{easy:[0,0],normal:[0,0],hard:[0,0]},online:[0,0],fac:{dragon:[0,0],machine:[0,0],magic:[0,0]}};if(!('daily' in v))v.daily=null;
+  if(!v.ach||typeof v.ach!=='object'){const st=v.stats,w=st.cpu.easy[0]+st.cpu.normal[0]+st.cpu.hard[0];
+    v.ach={cnt:{win:w,winHardest:st.cpu.hard[0],win_dragon:st.fac.dragon[0],win_machine:st.fac.machine[0],win_magic:st.fac.magic[0],online:st.online[0]+st.online[1]},got:{}};}
+  if(!v.ach.cnt||typeof v.ach.cnt!=='object')v.ach.cnt={};if(!v.ach.got||typeof v.ach.got!=='object')v.ach.got={};
+  if(!v.login||typeof v.login!=='object')v.login={date:'',streak:0};if(typeof v.login.best!=='number')v.login.best=v.login.streak||0;if(typeof v.streak!=='number')v.streak=0;if(typeof v.streakBest!=='number')v.streakBest=0;if(!v.story||typeof v.story!=='object')v.story={};const S=v.story;if(!S.clear||typeof S.clear!=='object')S.clear={};if(!S.star||typeof S.star!=='object')S.star={};S.pro=!!S.pro;S.urPending=!!S.urPending;return v;}
 function loadSave(){try{const v=JSON.parse(localStorage.getItem(SKEY)||'null');if(v&&typeof v.coins==='number'&&v.owned)return normSave(v);}catch(e){}return normSave(freshSave());}
 function storeSave(){try{localStorage.setItem(SKEY,JSON.stringify(SAVE));return true;}catch(e){return false;}}
 let SAVE=loadSave();storeSave();
@@ -649,6 +662,8 @@ function cleanSaveData(d){
   const okDaily=s.daily&&typeof s.daily.date==='string'&&Array.isArray(s.daily.ids)&&s.daily.prog&&s.daily.claimed;
   const save=normSave({coins:int(s.coins),shards:int(s.shards),owned,starter:STARTERS.some(x=>x.id===s.starter)?s.starter:null,
     stats:okStats?s.stats:undefined,daily:okDaily?s.daily:null,tutDone:!!s.tutDone,
+    ach:s.ach&&typeof s.ach==='object'?{cnt:Object.fromEntries(Object.entries(s.ach.cnt||{}).filter(([k,n])=>typeof k==='string'&&k.length<20).map(([k,n])=>[k,int(n)])),got:Object.fromEntries(Object.keys(s.ach.got||{}).filter(k=>ACH.some(a=>a.id===k)).map(k=>[k,true]))}:undefined,
+    login:s.login&&typeof s.login.date==='string'?{date:s.login.date.slice(0,12),streak:int(s.login.streak),best:int(s.login.best)}:undefined,streak:int(s.streak),streakBest:int(s.streakBest),
     story:s.story&&typeof s.story==='object'?{clear:Object.fromEntries(Object.keys(s.story.clear||{}).filter(k=>STORY.some(x=>x.id===k)).map(k=>[k,true])),star:Object.fromEntries(Object.keys(s.story.star||{}).filter(k=>STORY.some(x=>x.id===k)).map(k=>[k,true])),pro:!!s.story.pro,urPending:!!s.story.urPending}:undefined});
   const decks=(Array.isArray(d.decks)?d.decks:[]).filter(x=>x&&FAC[x.fac]&&x.cards&&typeof x.cards==='object').slice(0,100).map((x,i)=>{
     const cards={};for(const [id,n] of Object.entries(x.cards))if(C[id]&&C[id].fac===x.fac&&int(n)>0)cards[id]=Math.min(3,int(n));
@@ -709,7 +724,7 @@ function deckError(d,free){
 }
 
 /* ===== 状態 ===== */
-const APP_VER='0.45';
+const APP_VER='0.47';
 /* ===== ストーリーモード（v0.45） ===== */
 const STORY_PRO=[
  ['ナレーション','はるか昔、ある文明が、強大な存在の「魂」をカードに封じ込めた。'],
@@ -896,9 +911,86 @@ function storyResultHTML(){
     <button class="btn sub" data-act="go-story">ストーリーへ</button>
     <button class="btn sub" data-act="showlog">対戦ログを見る</button></div></div>`;
 }
+
+/* ===== コインの入手手段（v0.46）：実績・ログインボーナス・勝ち方ボーナス ===== */
+const ACH=[
+ {id:'a_win1',text:'CPU戦で初めて勝つ',goal:1,ev:'win',reward:50},
+ {id:'a_win10',text:'CPU戦で10勝する',goal:10,ev:'win',reward:100},
+ {id:'a_win50',text:'CPU戦で50勝する',goal:50,ev:'win',reward:300},
+ {id:'a_win100',text:'CPU戦で100勝する',goal:100,ev:'win',reward:500},
+ {id:'a_hard1',text:'むずかしいCPUに勝つ',goal:1,ev:'winHardest',reward:150},
+ {id:'a_wd10',text:'ドラゴンのデッキで10勝する',goal:10,ev:'win_dragon',reward:150},
+ {id:'a_wm10',text:'マシンのデッキで10勝する',goal:10,ev:'win_machine',reward:150},
+ {id:'a_ww10',text:'マジックのデッキで10勝する',goal:10,ev:'win_magic',reward:150},
+ {id:'a_perfect',text:'ノーダメージでCPUに勝つ',goal:1,ev:'perfect',reward:100},
+ {id:'a_streak5',text:'CPU戦で5連勝する',goal:5,st:()=>SAVE.streakBest||0,reward:150},
+ {id:'a_sum100',text:'モンスターを100体召喚する',goal:100,ev:'summon',reward:100},
+ {id:'a_sum500',text:'モンスターを500体召喚する',goal:500,ev:'summon',reward:200},
+ {id:'a_kill100',text:'相手のモンスターを100体破壊する',goal:100,ev:'kill',reward:100},
+ {id:'a_link30',text:'連携攻撃を30回する',goal:30,ev:'link',reward:100},
+ {id:'a_burst10',text:'ソウルバーストを10回使う',goal:10,ev:'burst',reward:100},
+ {id:'a_dmg300',text:'相手に合計300ダメージを与える',goal:300,ev:'dmg',reward:150},
+ {id:'a_pack10',text:'パックを10個開ける',goal:10,ev:'pack',reward:100},
+ {id:'a_pack50',text:'パックを50個開ける',goal:50,ev:'pack',reward:300},
+ {id:'a_online5',text:'通信対戦を5回遊ぶ',goal:5,ev:'online',reward:100},
+ {id:'a_login7',text:'7日連続でログインする',goal:7,st:()=>SAVE.login.best||0,reward:100},
+ {id:'a_login30',text:'30日連続でログインする',goal:30,st:()=>SAVE.login.best||0,reward:300},
+ {id:'a_login100',text:'100日連続でログインする',goal:100,st:()=>SAVE.login.best||0,reward:500},
+ {id:'a_boss3',text:'ストーリー：3つの章のボスをすべて倒す',goal:3,st:()=>['1-4','2-4','3-4'].filter(sClear).length,reward:200},
+ {id:'a_final',text:'ストーリー：終章をクリアする',goal:1,st:()=>sClear('4-3')?1:0,reward:300},
+ {id:'a_stars',text:'ストーリー：★をすべて集める',goal:15,st:()=>STORY.filter(x=>SAVE.story.star[x.id]).length,reward:300},
+ {id:'a_col50',text:'カードを50種類集める',goal:50,st:()=>DB.filter(c=>owned(c.id)>0).length,reward:100},
+ {id:'a_col100',text:'カードを100種類集める',goal:100,st:()=>DB.filter(c=>owned(c.id)>0).length,reward:200},
+ {id:'a_col150',text:'カードを150種類集める',goal:150,st:()=>DB.filter(c=>owned(c.id)>0).length,reward:300},
+ {id:'a_colall',text:'カードを全種類集める',goal:0,st:()=>DB.filter(c=>owned(c.id)>0).length,reward:500},
+ {id:'a_ur',text:'URのカードを手に入れる',goal:1,st:()=>DB.some(c=>c.rar==='UR'&&owned(c.id)>0)?1:0,reward:100},
+ {id:'a_lr',text:'LRのカードを手に入れる',goal:1,st:()=>DB.some(c=>c.rar==='LR'&&owned(c.id)>0)?1:0,reward:200},
+];
+const achGoal=a=>a.goal||DB.length;
+const achVal=a=>a.st?a.st():(SAVE.ach.cnt[a.ev]||0);
+const achReady=()=>ACH.filter(a=>!SAVE.ach.got[a.id]&&achVal(a)>=achGoal(a)).length;
+function achCount(ev,n){if(SIM)return;SAVE.ach.cnt[ev]=(SAVE.ach.cnt[ev]||0)+(n||1);}
+function achHTML(){
+  const rows=ACH.map(a=>({a,v:Math.min(achVal(a),achGoal(a)),g:achGoal(a),got:!!SAVE.ach.got[a.id]}));
+  const order=r=>r.got?2:(r.v>=r.g?0:1);rows.sort((x,y)=>order(x)-order(y));
+  const done=rows.filter(r=>r.got).length;
+  return `<div class="box stack"><b>実績</b><span style="font-size:12px;color:var(--muted)">一度だけもらえる目標です（達成 ${done} / ${ACH.length}）</span>
+  ${rows.map(({a,v,g,got})=>`<div class="mis ${got?'gotach':''}"><div class="mt"><span>${esc(a.text)}</span><span class="mr">${a.reward}コイン</span></div>
+    ${got?'':`<div class="bar"><span style="width:${Math.round(v*100/g)}%"></span></div>`}
+    <div class="mt"><span style="font-size:12px;color:var(--muted)">${v} / ${g}</span>
+    ${got?'<span style="font-size:12px;color:var(--ok)">受け取り済み</span>':`<button class="btn go" data-act="ach-claim" data-id="${a.id}" ${v>=g?'':'disabled'}>受け取る</button>`}</div></div>`).join('')}</div>`;
+}
+/* ログインボーナス：毎日最初に開いたとき。7日でひと回り */
+const LOGIN_BONUS=[30,30,50,30,50,50,200];
+let LOGIN_POP=null;
+const dayStr=d=>`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+function checkLogin(){
+  if(!SAVE.starter)return;const t=todayStr();const L=SAVE.login;if(L.date===t)return;
+  const y=new Date();y.setDate(y.getDate()-1);
+  const streak=L.date===dayStr(y)?L.streak+1:1,day=(streak-1)%7+1,n=LOGIN_BONUS[day-1];
+  SAVE.login={date:t,streak,best:Math.max(L.best||0,streak)};SAVE.coins+=n;storeSave();LOGIN_POP={day,n,streak};
+}
+function loginOv(){
+  const P=LOGIN_POP;if(!P)return '';
+  return `<div class="ov"><div class="ovbox"><h2>ログインボーナス</h2><p>${P.streak}日連続ログイン！</p>
+    <div class="loginrow">${LOGIN_BONUS.map((n,i)=>`<div class="lday ${i+1<P.day?'past':''} ${i+1===P.day?'today':''}"><span>${i+1}日目</span><b>${n}</b></div>`).join('')}</div>
+    <p class="reward">+${P.n} コイン（所持 ${SAVE.coins}）</p><p class="dm">7日目は大きなボーナス。8日目からはまた1日目の金額に戻ってくり返します。1日あくと1日目から</p><p class="dm">実績：7日・30日・100日連続ログイン</p>
+    <button class="btn go bigbtn" data-act="login-close">OK</button></div></div>`;
+}
+/* 勝ち方ボーナス：ふつうのCPU戦（ストーリー以外）で勝ったとき */
+function winBonus(mine){
+  const b=[],p=G.p[mine];
+  if(!(p.hurt>0)){b.push(['ノーダメージで勝利',30]);track('perfect');}
+  if(G.koByBurst)b.push(['ソウルバーストでとどめ',20]);
+  SAVE.streak=(SAVE.streak||0)+1;SAVE.streakBest=Math.max(SAVE.streakBest||0,SAVE.streak);
+  if(SAVE.streak%3===0)b.push([`${SAVE.streak}連勝`,50]);
+  G.bonus=b;return b.reduce((a,x)=>a+x[1],0);
+}
 /* ===== お知らせ（パッチノート）v0.44 =====
    遊ぶ人向けの更新内容。新しいものを先頭に足す。important:true は更新後の起動時に自動で表示する */
 const NEWS=[
+ {v:'0.47',date:'2026-10-22',title:'連続ログインの実績を追加',items:['7日・30日・100日連続でログインすると、実績でコインがもらえます（100・300・500コイン）','これまでの連続日数も数に入っています']},
+ {v:'0.46',date:'2026-10-22',title:'コインの手に入れ方が増えました',items:['ログインボーナス：毎日最初に開くとコイン。7日続けると200コイン','実績：一度だけもらえる目標が28個。「ミッション・実績・戦績」から受け取れます','勝ち方ボーナス：CPU戦でノーダメージ勝利+30、ソウルバーストでとどめ+20、3連勝ごとに+50']},
  {v:'0.45',date:'2026-10-22',title:'ストーリーモードが始まりました',items:['タイトルの「ストーリー」から遊べます。竜・機械・魔法の三つの地を巡り、各章のボスに挑みます（全15ステージ）','初めて勝つとコインとカードがもらえます。各ステージの★チャレンジを達成すると、さらに+50コイン','デイリーミッションに「ストーリーで1回勝つ」が加わりました']},
  {v:'0.44',date:'2026-10-22',title:'お知らせを見られるようになりました',items:['タイトルの「お知らせ」から、ゲームの更新内容を見られます','新しいお知らせがあると「NEW」が付きます']},
  {v:'0.43',date:'2026-10-22',important:true,title:'速攻・移動のモンスターは本体を狙いやすく',items:['速攻か移動を持つモンスターは、自分の正面が空いていれば、相手のセンターにモンスターがいても本体を攻撃できます（1体で攻撃するとき）','連携攻撃で本体を狙えるのは、相手のセンターが空いているときだけです']},
@@ -986,8 +1078,9 @@ function endTurn(){
   sel=null;G.cur=1-G.cur;nextTurn();
 }
 function gameOver(w,reason){
-  if(!G.over){G.over={w,reason};
-    if(!SIM&&G.cpu!=null&&w!==G.cpu&&!G.rewarded){if(G.story)storyWin();else{G.rewarded=REWARD[G.level]||0;SAVE.coins+=G.rewarded;storeSave();}}
+  if(!G.over){G.over={w,reason};if(G.inBurst)G.koByBurst=true;
+    if(!SIM&&G.cpu!=null&&w!==G.cpu&&!G.rewarded){if(G.story)storyWin();else{G.rewarded=(REWARD[G.level]||0)+(G.tutorial?0:winBonus(1-G.cpu));SAVE.coins+=G.rewarded;storeSave();}}
+    if(!SIM&&G.cpu!=null&&w===G.cpu&&!G.story&&!G.tutorial){SAVE.streak=0;storeSave();}
     if(!SIM&&G.tutorial&&!SAVE.tutDone){SAVE.tutDone=true;G.tutBonus=100;SAVE.coins+=100;storeSave();}
     if(!SIM)recordResult();
     if(!SIM){const mine=G.cpu!=null?1-G.cpu:(NET.active?NET.me:w);sfx(w===mine?'win':'lose');if(G.rewarded)setTimeout(()=>sfx('coin'),900);}}
@@ -996,7 +1089,7 @@ function gameOver(w,reason){
 function damage(p,n){
   if(G.over||n<=0)return;
   if(p.barrier){log(`バリアで${n}ダメージを無効化`);sfx('block');fx({t:'block',pi:p.i});return;}
-  p.life-=n;log(`${pn(p.i)}に${n}ダメージ（残り${Math.max(0,p.life)}）`);sfx('damage');fx({t:'dmg',pi:p.i,n});if(isLocal(1-p.i))track('dmg',n);
+  p.life-=n;p.hurt=(p.hurt||0)+n;log(`${pn(p.i)}に${n}ダメージ（残り${Math.max(0,p.life)}）`);sfx('damage');fx({t:'dmg',pi:p.i,n});if(isLocal(1-p.i))track('dmg',n);
   if(p.life<=0)gameOver(1-p.i,`${pn(p.i)}のライフが0になった`);
 }
 function unitAtk(p,lane){
@@ -1112,7 +1205,7 @@ function useCard(target){
   else{
     log(`${c.name}を使った`);sfx(c.type==='finisher'?'burst':'spell');if(c.type==='finisher'){fx({t:'burst'});if(isLocal(p.i))track('burst');}
     if(c.type==='finisher')p.finUsed=true;
-    applyFx(p,o,c,target);
+    G.inBurst=c.type==='finisher';applyFx(p,o,c,target);G.inBurst=false;
     p.grave.push(c.id);
     if(c.type==='spell'){p.spells++;p.field.forEach(u=>{if(u&&C[u.id].boost)u.temp+=C[u.id].boost;});}
   }
@@ -1600,7 +1693,7 @@ function ensureDaily(){
   SAVE.daily={date:t,ids,prog:{},claimed:{}};storeSave();
 }
 function track(ev,n){
-  if(SIM)return;ensureDaily();let ch=false;
+  if(SIM)return;ensureDaily();let ch=false;achCount(ev,n);
   for(const id of SAVE.daily.ids){const m=MISSIONS.find(x=>x.id===id);if(m&&m.ev===ev){SAVE.daily.prog[id]=Math.min(m.goal,(SAVE.daily.prog[id]||0)+(n||1));ch=true;}}
   if(ch)storeSave();
 }
@@ -1613,7 +1706,7 @@ function recordResult(){
   if(G.cpu!=null){
     const mine=1-G.cpu,won=G.over.w===mine,fac=G.p[mine].fac;
     st.cpu[G.level][won?0:1]++;st.fac[fac][won?0:1]++;
-    if(won){track('win');if(G.level!=='easy')track('winHard');track('win_'+fac);}
+    if(won){track('win');if(G.level!=='easy')track('winHard');if(G.level==='hard')track('winHardest');track('win_'+fac);}
   }else if(NET.active){
     const won=G.over.w===NET.me;st.online[won?0:1]++;st.fac[G.p[NET.me].fac][won?0:1]++;
   }else return;
@@ -1622,13 +1715,14 @@ function recordResult(){
 function missionHTML(){
   ensureDaily();const st=SAVE.stats;
   const wl=a=>`${a[0]}勝 ${a[1]}敗${a[0]+a[1]?`（勝率${Math.round(a[0]*100/(a[0]+a[1]))}%）`:''}`;
-  return `<div class="top"><button class="btn sub" data-act="go-title">戻る</button><h2>ミッション・戦績</h2></div>
+  return `<div class="top"><button class="btn sub" data-act="go-title">戻る</button><h2>ミッション・実績・戦績</h2></div>
   <div class="box stack"><b>今日のミッション</b><span style="font-size:12px;color:var(--muted)">毎日0時に入れ替わります</span>
   ${SAVE.daily.ids.map(id=>{const m=MISSIONS.find(x=>x.id===id),v=SAVE.daily.prog[id]||0,done=v>=m.goal,got=SAVE.daily.claimed[id];
     return `<div class="mis"><div class="mt"><span>${esc(m.text)}</span><span class="mr">${m.reward}コイン</span></div>
       <div class="bar"><span style="width:${Math.round(v*100/m.goal)}%"></span></div>
       <div class="mt"><span style="font-size:12px;color:var(--muted)">${v} / ${m.goal}</span>
       ${got?'<span style="font-size:12px;color:var(--ok)">受け取り済み</span>':`<button class="btn go" data-act="claim" data-id="${id}" ${done?'':'disabled'}>受け取る</button>`}</div></div>`;}).join('')}</div>
+  ${achHTML()}
   <div class="box stack"><b>戦績</b>
     <div class="stat"><span>CPU かんたん</span><span>${wl(st.cpu.easy)}</span></div>
     <div class="stat"><span>CPU ふつう</span><span>${wl(st.cpu.normal)}</span></div>
@@ -1911,7 +2005,7 @@ function titleHTML(){
     <button class="btn bigbtn" data-act="go-online">通信対戦</button>
     <button class="btn bigbtn" data-act="go-shop">パックを買う</button>
     <button class="btn sub" data-act="go-col">コレクション</button>
-    <button class="btn sub" data-act="go-mis">ミッション・戦績${missionReady()?`<span class="badge2">${missionReady()}</span>`:''}</button>
+    <button class="btn sub" data-act="go-mis">ミッション・実績・戦績${missionReady()+achReady()?`<span class="badge2">${missionReady()+achReady()}</span>`:''}</button>
     <button class="btn sub" data-act="go-tut">あそびかた（チュートリアル）</button>
     <button class="btn sub" data-act="rules">ルールを見る</button>
     <button class="btn sub" data-act="go-news">お知らせ${newsUnread().length?'<span class="badge2">NEW</span>':''}</button>
@@ -2016,7 +2110,8 @@ function render(){
   if(NET.active&&scr==='game')netSync();
   const app=$('#app'),ov=$('#ov');
   if(scr!=='game'){
-    app.className='page';ov.innerHTML=scr==='story'&&STV.talk?talkOv():rulesOv();
+    if(scr==='title')checkLogin();
+    app.className='page';ov.innerHTML=scr==='story'&&STV.talk?talkOv():(scr==='title'&&LOGIN_POP?loginOv():rulesOv());
     app.innerHTML={title:titleHTML,setup:setupHTML,decks:decksHTML,newdeck:newDeckHTML,edit:editHTML,shop:shopHTML,col:colHTML,online:onlineHTML,pick:pickHTML,mis:missionHTML,tut:tutHTML,save:saveHTML,news:newsHTML,story:storyHTML}[scr]();
     return;
   }
@@ -2028,6 +2123,8 @@ function render(){
     ov.innerHTML=`<div class="ov"><div class="ovbox"><h1 class="${FCLS[G.p[G.over.w].fac]}">${pname(G.over.w)}の勝ち</h1>
       <p>${fmtLog(G.over.reason)}</p>
       ${G.tutBonus?`<p class="reward">チュートリアル完了ボーナス +${G.tutBonus} コイン！</p>`:''}
+      ${G.bonus&&G.bonus.length?G.bonus.map(([t,n])=>`<p class="bonusl">${esc(t)} +${n}</p>`).join(''):''}
+      ${!G.story&&G.cpu!=null&&!G.tutorial&&G.over.w!==G.cpu&&SAVE.streak>1?`<p class="dm">${SAVE.streak}連勝中（3連勝ごとに+50）</p>`:''}
       ${G.rewarded?`<p class="reward">+${G.rewarded} コイン獲得！（所持 ${SAVE.coins}）</p><button class="btn bigbtn" data-act="go-shop">パックを買いに行く</button>`:''}
       ${NET.active?(NET.me===0&&!NET.oppLeft?'<button class="btn go bigbtn" data-act="net-rematch">もう一度対戦</button>':`<p>${NET.oppLeft?'相手が部屋から出ました':'部屋を作った人が「もう一度対戦」を押すと始まります'}</p>`)
       :'<button class="btn go bigbtn" data-act="start">同じデッキでもう一度</button>\n      <button class="btn sub" data-act="go-setup">デッキを選び直す</button>'}
@@ -2098,6 +2195,8 @@ document.addEventListener('click',e=>{
     if(!storeSave()||!saveDecks(MY)){SV.msg='保存できませんでした。端末の空き容量を確認してください';render();return;}
     setup.d[0]=SAVE.starter;NET.deckId=SAVE.starter;SV.input='';SV.pending=null;
     if(SAVE.starter){openSaveScreen();SV.msg='引き継ぎました！続きから遊べます';render();}else{SV.msg='引き継ぎました';scr='pick';render();}return;}
+  if(a==='ach-claim'){const x=ACH.find(q=>q.id===el.dataset.id);if(x&&!SAVE.ach.got[x.id]&&achVal(x)>=achGoal(x)){SAVE.ach.got[x.id]=true;SAVE.coins+=x.reward;storeSave();sfx('coin');}render();return;}
+  if(a==='login-close'){LOGIN_POP=null;render();return;}
   if(a==='claim'){ensureDaily();const m=MISSIONS.find(x=>x.id===el.dataset.id);if(m&&(SAVE.daily.prog[m.id]||0)>=m.goal&&!SAVE.daily.claimed[m.id]){SAVE.daily.claimed[m.id]=true;SAVE.coins+=m.reward;storeSave();sfx('coin');}render();return;}
   if(a==='dis'){if(dismantle(el.dataset.id,false)){storeSave();sfx('coin');}const y=window.scrollY;render();window.scrollTo(0,y);return;}
   if(a==='dis-all'){let g=0;DB.forEach(c=>{g+=dismantle(c.id,true);});if(g){storeSave();sfx('coin');}const y=window.scrollY;render();window.scrollTo(0,y);return;}
@@ -2148,7 +2247,7 @@ document.addEventListener('click',e=>{
     if(setup.d[1]==='random'){const pool=allDecks().filter(d=>!deckError(d,true));d1=pool[Math.floor(Math.random()*pool.length)];}
     newGame([deckById(setup.d[0]),d1]);return;}
   if(!G)return;
-  if(a==='quit'){const story=G&&G.story;netLeave();G=null;scr=story?'story':'title';showRules=false;render();return;}
+  if(a==='quit'){const story=G&&G.story;if(G&&G.cpu!=null&&!G.over&&!G.story&&!G.tutorial&&SAVE.streak){SAVE.streak=0;storeSave();}netLeave();G=null;scr=story?'story':'title';showRules=false;render();return;}
   if(a==='begin'){startTurn();return;}
   if(G.over||G.passing||cpuNow()||netWait())return;
   if(a==='cancel'){sel=null;render();return;}
