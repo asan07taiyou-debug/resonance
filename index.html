@@ -229,6 +229,7 @@ h1,h2{font-family:"Dela Gothic One","Hiragino Sans","Noto Sans JP",sans-serif;fo
 .land .mid{min-height:22px}
 @media (max-height:500px){.land .pzone .lbl{display:none}.land .mid{font-size:10px}}
 @media (min-height:640px){.land .lhand .hand .cardui .ct,.land .lhand .hand .cardui .cx{display:block}.land .lhand .hand .cardui .ci{flex:none;height:42%}.land .lhand .hand .cardui .cx{font-size:10px;line-height:1.3;overflow:hidden;flex:1}}
+.mid.auto{border:1px dashed var(--gold);border-radius:10px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:7px 10px;display:flex;gap:10px;align-items:center;min-height:50px}
 .panel .txt{flex:1;font-size:12px;line-height:1.4}
 .panel .txt b{font-size:13px}
@@ -856,7 +857,7 @@ function deckError(d,free){
 }
 
 /* ===== 状態 ===== */
-const APP_VER='0.57';
+const APP_VER='0.58';
 /* ===== ストーリーモード（v0.45） ===== */
 const STORY_PRO=[
  ['ナレーション','はるか昔、ある文明が、強大な存在の「魂」をカードに封じ込めた。'],
@@ -1286,7 +1287,7 @@ function graveOv(){if(!sel||sel.kind!=='grave'||!G)return '';const pl=sel.side==
 /* ===== 横持ちの対戦画面（v0.57）：相手4：自分6。手書きの配置案どおり ===== */
 const isLand=()=>typeof matchMedia==='function'&&matchMedia('(orientation: landscape)').matches&&innerWidth>=560;
 let LAND_NOW=null;
-function midHTML(){const h=selHint();return h?`<div class="mid sel">${h}</div>`:`<div class="mid${NET.active?' online':''}" data-act="showlog" role="button" tabindex="0" aria-label="対戦ログを見る"><span class="logopen">ログ</span>${NET.active?'<button class="stamppill" data-act="stamp-open" aria-label="スタンプを送る">💬 スタンプ</button>':''}${G.log.slice(-2).map(l=>`<div>${fmtLog(l)}</div>`).join('')}</div>`;}
+function midHTML(){if(!sel&&autoWillEnd())return autoLine();const h=selHint();return h?`<div class="mid sel">${h}</div>`:`<div class="mid${NET.active?' online':''}" data-act="showlog" role="button" tabindex="0" aria-label="対戦ログを見る"><span class="logopen">ログ</span>${NET.active?'<button class="stamppill" data-act="stamp-open" aria-label="スタンプを送る">💬 スタンプ</button>':''}${G.log.slice(-2).map(l=>`<div>${fmtLog(l)}</div>`).join('')}</div>`;}
 function landHTML(){
   const p=vme(),o=vop();
   return `<div class="land">
@@ -1312,9 +1313,28 @@ function landHTML(){
   </div></div>`;
 }
 addEventListener('resize',()=>{if(scr==='game'&&G&&isLand()!==LAND_NOW)render();});
+
+/* ===== 自動ターン終了（v0.58）：することが何もないときは、少し待ってから自動でターンを終える ===== */
+const AUTO_MS=1600;let AUTO_T=null,AUTO_STOP=null;
+const turnKey=()=>G?`${G.cur}-${G.p[G.cur].turns}`:'';
+function nothingToDo(){
+  if(!myTurnUI()||G.tutorial)return false;const p=me();
+  if(G.phase==='charge'&&p.hand.length)return false;
+  if(actPhase()&&usableCards())return false;
+  if(readyAttackers())return false;
+  if(actPhase()&&p.field.some(u=>canMove(u,p)))return false;
+  return true;
+}
+const autoWillEnd=()=>OPT.autoEnd!==false&&!!G&&!G.over&&!CONF&&!ZOOM&&!showLog&&!showRules&&AUTO_STOP!==turnKey()&&nothingToDo();
+function scheduleAutoEnd(){
+  clearTimeout(AUTO_T);AUTO_T=null;if(!autoWillEnd())return;const k=turnKey();
+  AUTO_T=setTimeout(()=>{AUTO_T=null;if(scr==='game'&&turnKey()===k&&autoWillEnd()){log('することがないので、自動でターン終了');skipCharge();sel=null;endTurn();}},AUTO_MS);
+}
+const autoLine=()=>`<div class="mid sel auto"><b>することがありません</b><span>まもなく自動でターン終了します</span><button class="mbtn sub" data-act="auto-stop">止める</button></div>`;
 /* ===== お知らせ（パッチノート）v0.44 =====
    遊ぶ人向けの更新内容。新しいものを先頭に足す。important:true は更新後の起動時に自動で表示する */
 const NEWS=[
+ {v:'0.58',date:'2026-10-22',title:'自動ターン終了',items:['使えるカードも、攻撃や移動ができるモンスターもないときは、少し待ってから自動でターンが終わります','盤面の下の行に「まもなく自動でターン終了します」と出ている間に「止める」を押すと、そのターンは自動で終わりません','メニューの「自動ターン終了」でオン/オフを切りかえられます']},
  {v:'0.57',date:'2026-10-22',title:'横持ちに対応しました',items:['スマホを横にしたり、タブレット・パソコンで遊んだりすると、横長の画面用の配置になります（相手の場：自分の場＝4：6）','手札は下、チャージゾーンは左、ライフ・ソウル・「ターン終了」は右下のプレイヤー表示にあります']},
  {v:'0.56',date:'2026-10-22',title:'呪文を使ったときの演出',items:['呪文やソウルバーストを使うと、カードが画面の中央に大きく出てから、効果が出る場所（相手のライフ・対象のモンスターなど）へ吸いこまれるようにしました。CPUや相手が使ったときも出ます']},
  {v:'0.55',date:'2026-10-22',title:'「アタックへ」ボタンをなくしました・ターンの表示',items:['攻撃したいモンスターをタップして敵（または光った相手のライフ表示）をタップすると、そのままアタックフェーズへ進みます。チャージしていない・使えるカードが残っているときは確認が出ます','自分のライフ表示の右は「ターン終了 ▶」だけになりました','ターンの初めに、画面の中央に「あなたのターン」「CPUのターン」などが出るようにしました','対戦の準備画面に、CPUの強さの説明を足しました（むずかしいCPUはチャージ1枚多くスタートします）']},
@@ -1948,6 +1968,7 @@ function soundHTML(){
   return `<div class="sound"><button class="chip" aria-pressed="${SND.set.bgm}" data-act="snd-bgm">BGM ${SND.set.bgm?'オン':'オフ'}</button>
     <button class="chip" aria-pressed="${SND.set.se}" data-act="snd-se">効果音 ${SND.set.se?'オン':'オフ'}</button>
     <button class="chip" aria-pressed="${OPT.confirm}" data-act="opt-confirm">確認 ${OPT.confirm?'オン':'オフ'}</button>
+    <button class="chip" aria-pressed="${OPT.autoEnd!==false}" data-act="opt-autoend">自動ターン終了 ${OPT.autoEnd!==false?'オン':'オフ'}</button>
     <label class="vol">音量<input type="range" min="0" max="100" step="5" value="${Math.round(SND.set.vol*100)}" data-act="snd-vol" aria-label="音量"></label></div>`;
 }
 
@@ -2257,7 +2278,7 @@ function boardHTML(){
     ${chargeHTML(p,g(3,1,2))}${slotHTML(p,'me',1,g(3,3))}${pilesHTML(p,'me','grid-row:3;grid-column:4 / span 2;justify-content:center','dg')}
     ${slotHTML(p,'me',0,g(4,2))}${pzoneHTML(p,'me',g(4,3))}${slotHTML(p,'me',2,g(4,4))}
   </div>
-  ${(()=>{const h=selHint();return h?`<div class="mid sel">${h}</div>`:'';})()||`<div class="mid${NET.active?' online':''}" data-act="showlog" role="button" tabindex="0" aria-label="対戦ログを見る"><span class="logopen">ログ</span>${NET.active?'<button class="stamppill" data-act="stamp-open" aria-label="スタンプを送る">💬 スタンプ</button>':''}${G.log.slice(-2).map(l=>`<div>${fmtLog(l)}</div>`).join('')}</div>`}`;
+  ${(()=>{if(!sel&&autoWillEnd())return autoLine();const h=selHint();return h?`<div class="mid sel">${h}</div>`:'';})()||`<div class="mid${NET.active?' online':''}" data-act="showlog" role="button" tabindex="0" aria-label="対戦ログを見る"><span class="logopen">ログ</span>${NET.active?'<button class="stamppill" data-act="stamp-open" aria-label="スタンプを送る">💬 スタンプ</button>':''}${G.log.slice(-2).map(l=>`<div>${fmtLog(l)}</div>`).join('')}</div>`}`;
 }
 function panelHTML(){
   const p=vme(),ph=G.phase;
@@ -2340,7 +2361,8 @@ const RULES=`<div class="rules">
 <li>移動：移動持ちのモンスターをタップ → 光っている空きマスをタップ（チャージ・メインフェーズ）</li>
 <li>どの操作もドラッグ＆ドロップでできる。選ぶのをやめるときは、もう一度タップか「✕」</li>
 <li>カードを長押しすると拡大表示。盤面の下の行をタップすると対戦ログ、墓地をタップするとカードの一覧</li>
-<li>チャージ忘れや攻撃し忘れのときは確認が出る（メニューの「確認」でオン/オフ）</li></ul>
+<li>チャージ忘れや攻撃し忘れのときは確認が出る（メニューの「確認」でオン/オフ）</li>
+<li>使えるカード・攻撃できるモンスター・移動できるモンスターが何もないときは、少し待ってから自動でターン終了（「止める」で止められる。メニューの「自動ターン終了」でオン/オフ）</li></ul>
 <h3>基本</h3><ul>
 <li>ライフ10、デッキ30枚、手札5枚でスタート</li>
 <li>場はレフト・センター・ライト。攻撃先は相手の好きなモンスターを選べる</li>
@@ -2530,6 +2552,7 @@ function render(){
   app.innerHTML=LAND_NOW?`${landHTML()}${stampHTML()}`:`<div class="board">${boardHTML()}</div><div class="dock">${dockHTML()}</div>${stampHTML()}`;
   if(showLog){const ls=ov.querySelector('.logscroll');if(ls)ls.scrollTop=ls.scrollHeight;}
   {const tk=`${G.cur}-${G.p[G.cur].turns}`;if(tk!==LAST_TURN&&G.p[G.cur].turns>0){LAST_TURN=tk;turnCutin();}}
+  scheduleAutoEnd();
   flushFx();
 }
 
@@ -2552,6 +2575,8 @@ document.addEventListener('click',e=>{
   if(a==='conf-off'){OPT.confirm=false;optSave();const c=CONF,x=c&&c.act;CONF=null;if(x)confRun(x,c);else render();return;}
   if(a==='conf-yes'){const c=CONF,x=c&&c.act;CONF=null;if(x)confRun(x,c);else render();return;}
   if(a==='opt-confirm'){OPT.confirm=!OPT.confirm;optSave();render();return;}
+  if(a==='opt-autoend'){OPT.autoEnd=OPT.autoEnd===false;optSave();render();return;}
+  if(a==='auto-stop'){AUTO_STOP=turnKey();clearTimeout(AUTO_T);AUTO_T=null;render();return;}
   if(a==='stamp-open'){STAMP_OPEN=!STAMP_OPEN;render();return;}
   if(a==='stamp'){sendStamp(+el.dataset.i);return;}
   if(a==='mis-reroll'){ensureDaily();const d=SAVE.daily,id=el.dataset.id;if(!d.rerolled&&d.ids.includes(id)&&!d.claimed[id]){const c=MISSIONS.map(m=>m.id).filter(x=>!d.ids.includes(x)&&x!=='online1'&&missionOK(x));if(c.length){const nw=c[Math.floor(Math.random()*c.length)];d.ids[d.ids.indexOf(id)]=nw;delete d.prog[id];d.rerolled=true;storeSave();}}render();return;}
