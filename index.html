@@ -67,6 +67,17 @@ h1,h2{font-family:"Dela Gothic One","Hiragino Sans","Noto Sans JP",sans-serif;fo
 /* board grid */
 .grid{display:grid;grid-template-columns:38px 1fr 1fr 1fr 38px;grid-template-rows:repeat(4,minmax(82px,auto));gap:5px;
   padding:8px 6px;border-radius:14px;border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 40%,transparent)}
+
+/* ドラッグ＆ドロップ */
+.game .hand .cardui{touch-action:pan-x}
+.game .slot,.game .pzone{touch-action:none}
+.game .cardui,.dragghost{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.dragghost{position:fixed;left:0;top:0;width:80px;z-index:1000;pointer-events:none;opacity:.92;filter:drop-shadow(0 8px 14px rgba(0,0,0,.35));transform-origin:center}
+.dragghost .cardui{width:80px;rotate:-4deg;scale:1.05}
+.dragging,.dragging *{cursor:grabbing}
+.droptgt{outline:3px dashed var(--gold);outline-offset:2px}
+.dropover{outline:3px solid var(--gold)!important;outline-offset:2px;background:color-mix(in srgb,var(--gold) 22%,transparent)!important}
+@media (prefers-reduced-motion: reduce){.dragghost .cardui{rotate:0deg;scale:1}}
 .slot{border:2px dashed var(--line);background:transparent;padding:0;display:flex;align-items:stretch;justify-content:center;border-radius:12px;min-width:0}
 .slot.empty{border-radius:50%;aspect-ratio:1;width:min(100%,78px);justify-self:center;align-self:center;align-items:center;color:var(--muted);font-size:11px}
 .slot.tgt{border-style:solid;border-color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,transparent);animation:pulse 1.2s ease-in-out infinite}
@@ -638,7 +649,7 @@ function deckError(d,free){
 }
 
 /* ===== 状態 ===== */
-const APP_VER='0.39';
+const APP_VER='0.40';
 let scr='splash', G=null, sel=null, showRules=false, ED=null, delId=null, edFilter='all', saveMsg='';
 let setup={d:['st-dragon','st-machine'],mode:'cpu',level:'normal'};
 const LEVELS={easy:'かんたん',normal:'ふつう',hard:'むずかしい'};
@@ -1449,7 +1460,7 @@ function pzoneHTML(p,side,pos){
 }
 function chargeHTML(p,pos){
   const n=p.charge.length;
-  return `<div class="charge" style="${pos}" aria-label="チャージゾーン ${n}枚"><span class="n">${n}</span><div class="stk">${Array.from({length:Math.min(n,8)},()=>'<span></span>').join('')}</div><span class="vt">チャージゾーン</span></div>`;
+  return `<div class="charge" data-pi="${p.i}" style="${pos}" aria-label="チャージゾーン ${n}枚"><span class="n">${n}</span><div class="stk">${Array.from({length:Math.min(n,8)},()=>'<span></span>').join('')}</div><span class="vt">チャージゾーン</span></div>`;
 }
 function pilesHTML(p,side,pos,order){
   const deck=`<div class="pile deck"><b>${p.deck.length}</b>山札</div>`;
@@ -1493,11 +1504,11 @@ function panelHTML(){
     if(sel&&sel.kind==='hand'){const c=C[p.hand[sel.idx]];
       return `<div class="panel"><div class="txt"><b>${esc(c.name)}</b>を裏向きでチャージゾーンに置く？</div>
         <div class="btns"><button class="btn sub" data-act="cancel">戻る</button><button class="btn go" data-act="charge">チャージする</button></div></div>`;}
-    return `<div class="panel"><div class="txt"><b>チャージフェーズ</b><br>手札を1枚選んでチャージ（チャージの枚数＝毎ターンのソウル）</div>
+    return `<div class="panel"><div class="txt"><b>チャージフェーズ</b><br>手札を1枚選んでチャージ（チャージゾーンへドラッグでもOK。チャージの枚数＝毎ターンのソウル）</div>
       <div class="btns"><button class="btn sub" data-act="nocharge">しない</button></div></div>`;
   }
   if(sel&&sel.kind==='move'){
-    return `<div class="panel"><div class="txt"><b>${esc(C[p.field[sel.lane].id].name)}を移動</b><br>移動先（光っている空きマス）をタップ</div>
+    return `<div class="panel"><div class="txt"><b>${esc(C[p.field[sel.lane].id].name)}を移動</b><br>移動先（光っている空きマス）をタップ、またはそこへドラッグ</div>
       <div class="btns"><button class="btn sub" data-act="cancel">戻る</button></div></div>`;
   }
   if(sel&&sel.kind==='link'){
@@ -1515,7 +1526,7 @@ function panelHTML(){
       else if(!can)hint=sealed(pl,sel.lane)?'正面の封印で攻撃できません':(u.atkLeft<=0?'このターンは攻撃済み':'出したターンは攻撃できません');
       else{
         const others=[0,1,2].some(l=>l!==sel.lane&&canAttack(pl.field[l],pl,l));
-        hint=vop().field.some(Boolean)?'攻撃したい敵（光っているマス）をタップ':'敵モンスターはいません';
+        hint=vop().field.some(Boolean)?'攻撃したい敵（光っているマス）をタップ、またはそこへドラッグ':'敵モンスターはいません';
         if(canHitPlayer([sel.lane]))hint+=(!vop().field[1]?'。センターが空いているので':'。正面が空いているので')+'本体も狙える';
         btns=(canHitPlayer([sel.lane])?'<button class="btn go" data-act="atk-player">本体</button>':'')+(others?'<button class="btn" data-act="link">連携</button>':'');
       }
@@ -1525,13 +1536,13 @@ function panelHTML(){
   }
   if(sel&&(sel.kind==='hand'||sel.kind==='buddy')){
     const c=selCard(),why=whyNot(c,sel.kind==='buddy');
-    const hint=why||(needsTarget(c)?(c.type==='monster'?'出すマス（光っている空きマス）をタップ':'対象（光っているマス）をタップ'):'「使う」で発動');
+    const hint=why||(needsTarget(c)?(c.type==='monster'?'出すマス（光っている空きマス）をタップ、またはそこへドラッグ':'対象（光っているマス）をタップ、またはそこへドラッグ'):'「使う」で発動');
     return `<div class="panel"><div class="txt"><b>${esc(c.name)}</b>（コスト${c.cost}）<br>${esc(hint)}</div>
       <div class="btns"><button class="btn sub" data-act="cancel">戻る</button>${!why&&!needsTarget(c)?'<button class="btn go" data-act="use">使う</button>':''}</div></div>`;
   }
-  if(ph==='main')return `<div class="panel"><div class="txt"><b>メインフェーズ</b><br>手札やパートナーをタップしてカードを使う</div>
+  if(ph==='main')return `<div class="panel"><div class="txt"><b>メインフェーズ</b><br>手札やパートナーをタップ、または場へドラッグしてカードを使う</div>
     <div class="btns"><button class="btn sub" data-act="rules">ルール</button><button class="btn" data-act="to-attack">アタックへ</button></div></div>`;
-  return `<div class="panel"><div class="txt"><b>アタックフェーズ</b><br>緑に光るモンスターをタップして攻撃</div>
+  return `<div class="panel"><div class="txt"><b>アタックフェーズ</b><br>緑に光るモンスターをタップ、または敵や相手のライフへドラッグして攻撃</div>
     <div class="btns"><button class="btn sub" data-act="rules">ルール</button><button class="btn" data-act="end">ターン終了</button></div></div>`;
 }
 function handHTML(){
@@ -1551,6 +1562,7 @@ const RULES=`<div class="rules">
 <li>アタック：モンスターで攻撃する</li>
 <li>エンド：ターン終了時の処理をしてターンを終わる</li></ul>
 <h3>基本</h3><ul>
+<li>カードはタップでも、ドラッグ＆ドロップでも動かせる（手札→場・チャージゾーン、モンスター→敵・相手のライフ・空きマス）</li>
 <li>ライフ10、デッキ30枚、手札5枚でスタート</li>
 <li>場はレフト・センター・ライト。攻撃先は相手の好きなモンスターを選べる。正面が空いていれば相手の本体も攻撃できる（打撃ぶんライフにダメージ）</li>
 <li>相手のセンターが空いていれば、どのモンスターでも本体を攻撃できる</li>
@@ -1837,6 +1849,87 @@ document.addEventListener('click',e=>{
     if(p.field[lane]){sel={kind:'unit',side,lane};render();}
   }
 });
+/* ===== ドラッグ＆ドロップ（v0.40で追加。タップ操作もそのまま使える） ===== */
+const DRAG={on:false,start:null,ghost:null,src:null,over:null,endAt:0};
+function dragReady(){return scr==='game'&&G&&!G.over&&!G.passing&&!cpuNow()&&!netWait();}
+/* つかんだものに合わせて、タップしたときと同じ選択状態にする */
+function dragSelect(src){
+  const p=vme();
+  if(src.kind==='hand'){if(G.phase!=='charge'&&G.phase!=='main')return false;sel={kind:'hand',idx:src.idx};return true;}
+  if(src.kind==='buddy'){if(G.phase!=='main'||p.buddy!=='zone')return false;sel={kind:'buddy'};return true;}
+  if(src.kind==='unit'){const u=p.field[src.lane];if(!u)return false;
+    if(G.phase==='attack'&&canAttack(u,p,src.lane)){sel={kind:'unit',side:'me',lane:src.lane};return true;}
+    if(G.phase==='main'&&canMove(u,p)){sel={kind:'move',lane:src.lane};return true;}}
+  return false;
+}
+function dragCardId(src){const p=vme();return src.kind==='hand'?p.hand[src.idx]:(src.kind==='buddy'?p.buddyId:(p.field[src.lane]||{}).id);}
+/* 指を離した場所に、何ができるかを調べる */
+function dropAction(x,y){
+  const el=document.elementFromPoint(x,y);if(!el||!sel)return null;
+  const slot=el.closest('.slot[data-side]');
+  if(slot){const side=slot.dataset.side,lane=+slot.dataset.lane;if(isTarget(side,lane))return {el:slot,go:()=>{
+      if(sel.kind==='move')moveUnit(sel.lane,lane);else if(sel.kind==='unit')attackAt([sel.lane],lane);else useCard({side,lane});}};}
+  if(G.phase==='charge'&&sel.kind==='hand'){const ch=el.closest('.charge[data-pi]');
+    if(ch&&+ch.dataset.pi===vme().i)return {el:ch,go:()=>chargeCard(sel.idx)};return null;}
+  if(sel.kind==='unit'){const inf=el.closest('.info[data-pi]');
+    if(inf&&+inf.dataset.pi===vop().i&&canHitPlayer([sel.lane]))return {el:inf,go:()=>attackAt([sel.lane],'player')};return null;}
+  if(sel.kind==='hand'||sel.kind==='buddy'){const c=selCard();
+    if(c&&!whyNot(c,sel.kind==='buddy')&&!needsTarget(c)){const area=el.closest('.grid,.info,.backs');if(area)return {el:area,go:()=>useCard(null)};}}
+  return null;
+}
+function markDropZones(){
+  if(!sel)return;
+  if(G.phase==='charge'){const ch=document.querySelector(`.charge[data-pi="${vme().i}"]`);if(ch)ch.classList.add('droptgt');}
+  if(sel.kind==='unit'&&canHitPlayer([sel.lane])){const inf=document.querySelector(`.info[data-pi="${vop().i}"]`);if(inf)inf.classList.add('droptgt');}
+  if(sel.kind==='hand'||sel.kind==='buddy'){const c=selCard();if(c&&G.phase==='main'&&!whyNot(c,sel.kind==='buddy')&&!needsTarget(c)){const g=document.querySelector('.grid');if(g)g.classList.add('droptgt');}}
+}
+function dragBegin(e){
+  const id=dragCardId(DRAG.src);if(!id||!dragSelect(DRAG.src))return false;
+  DRAG.on=true;sfx('tap');
+  /* 画面を描き直すとつかんだ要素が消えるので、指の動きは body で受け取る */
+  try{document.body.setPointerCapture(e.pointerId);}catch(x){}
+  render();markDropZones();document.body.classList.add('dragging');
+  const g=document.createElement('div');g.className='dragghost';g.innerHTML=cardUI(C[id],{tag:'div',mini:1});document.body.appendChild(g);DRAG.ghost=g;
+  dragMove(e);return true;
+}
+function dragMove(e){
+  const g=DRAG.ghost;if(!g)return;g.style.transform=`translate(${e.clientX-40}px,${e.clientY-56}px)`;
+  const d=dropAction(e.clientX,e.clientY),el=d?d.el:null;
+  if(DRAG.over!==el){if(DRAG.over)DRAG.over.classList.remove('dropover');if(el)el.classList.add('dropover');DRAG.over=el;}
+}
+function dragEnd(e,cancel){
+  const was=DRAG.on;let d=null;
+  if(was&&!cancel)d=dropAction(e.clientX,e.clientY);
+  if(DRAG.ghost)DRAG.ghost.remove();
+  document.body.classList.remove('dragging');
+  DRAG.on=false;DRAG.start=null;DRAG.src=null;DRAG.ghost=null;DRAG.over=null;
+  if(!was)return;
+  DRAG.endAt=Date.now();
+  if(d)d.go();else{sel=null;render();}
+}
+document.addEventListener('pointerdown',e=>{
+  if(e.button>0||DRAG.on||!dragReady())return;
+  const el=e.target.closest('[data-act]');if(!el)return;
+  let src=null;const a=el.dataset.act;
+  if(a==='hand')src={kind:'hand',idx:+el.dataset.idx};
+  else if(a==='buddy')src={kind:'buddy'};
+  else if(a==='slot'&&el.dataset.side==='me'&&vme().field[+el.dataset.lane])src={kind:'unit',lane:+el.dataset.lane};
+  if(!src)return;
+  DRAG.src=src;DRAG.start={x:e.clientX,y:e.clientY,id:e.pointerId,touch:e.pointerType!=='mouse'};
+});
+document.addEventListener('pointermove',e=>{
+  if(DRAG.on){e.preventDefault();dragMove(e);return;}
+  const st=DRAG.start;if(!st||e.pointerId!==st.id)return;
+  const dx=e.clientX-st.x,dy=e.clientY-st.y;if(Math.hypot(dx,dy)<10)return;
+  /* 手札を指で横に動かしたときは、つかまずに横スクロールにする */
+  if(st.touch&&DRAG.src.kind==='hand'&&Math.abs(dx)>Math.abs(dy)){DRAG.start=null;DRAG.src=null;return;}
+  if(!dragBegin(e)){DRAG.start=null;DRAG.src=null;}
+},{passive:false});
+document.addEventListener('pointerup',e=>{if(DRAG.on)dragEnd(e,false);else{DRAG.start=null;DRAG.src=null;}});
+document.addEventListener('pointercancel',e=>{if(DRAG.on)dragEnd(e,true);else{DRAG.start=null;DRAG.src=null;}});
+/* ドラッグのあとの「タップ」は無視する */
+document.addEventListener('click',e=>{if(DRAG.endAt&&Date.now()-DRAG.endAt<400){DRAG.endAt=0;e.stopImmediatePropagation();e.preventDefault();}},true);
+document.addEventListener('contextmenu',e=>{if(DRAG.on||(scr==='game'&&e.target.closest('.cardui')))e.preventDefault();});
 document.addEventListener('change',e=>{
   const el=e.target;
   if(el.dataset.act==='pickdeck'){setup.d[+el.dataset.p]=el.value;render();}
