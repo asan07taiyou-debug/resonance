@@ -146,6 +146,19 @@ h1,h2{font-family:"Dela Gothic One","Hiragino Sans","Noto Sans JP",sans-serif;fo
 .phases{display:flex;gap:3px}
 .phases span{flex:1;text-align:center;font-size:11px;padding:3px 0;border-radius:6px;color:var(--muted);border:1px solid var(--line)}
 .phases span.now{background:var(--ink);color:var(--surface);border-color:var(--ink);font-weight:800}
+.panel .chg{font-size:11px;font-weight:800;color:#fff;background:var(--danger);border-radius:99px;padding:1px 7px}
+.info .actbtn{padding:6px 12px;font-size:13px;border-radius:10px;white-space:nowrap;min-height:34px;width:auto}
+.info .waitlbl{font-size:12px;color:var(--muted);white-space:nowrap}
+.info .menubtn{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:15px;line-height:1;cursor:pointer;flex:none}
+.info.tgt{outline:3px solid var(--ok);outline-offset:1px;cursor:pointer;animation:pulse 1.1s ease-in-out infinite}
+.charge.tgt{outline:3px solid var(--ok);outline-offset:1px;cursor:pointer;animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{50%{outline-color:color-mix(in srgb,var(--ok) 35%,transparent)}}
+.mid.sel{cursor:default;padding:2px 4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--ink);min-height:34px}
+.mid.sel b{color:var(--gold);font-weight:800}
+.mid.sel>span{flex:1;min-width:0;font-weight:600}
+.mid .mbtn{border-radius:999px;padding:5px 14px;font:inherit;font-weight:800;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.mid .mbtn.go{background:var(--gold);border-color:var(--gold);color:#1A1D29}
+@media (prefers-reduced-motion: reduce){.info.tgt,.charge.tgt{animation:none}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:7px 10px;display:flex;gap:10px;align-items:center;min-height:50px}
 .panel .txt{flex:1;font-size:12px;line-height:1.4}
 .panel .txt b{font-size:13px}
@@ -314,6 +327,15 @@ select,input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px so
 .gotach{opacity:.6}
 .ovbox .bonusl{margin:2px 0;font-size:15px;color:var(--gold);font-weight:800}
 
+.autorow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.curve{display:flex;gap:12px;align-items:stretch;padding:10px 12px}
+.cvbars{display:flex;gap:6px;align-items:flex-end;height:78px;flex:1}
+.cvb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative}
+.cvf{width:100%;max-width:26px;background:var(--gold);border-radius:4px 4px 0 0;min-height:2px}
+.cvn{font-size:11px;font-weight:800}
+.cvl{font-size:10px;color:var(--muted);margin-top:2px}
+.cvt{display:flex;flex-direction:column;gap:2px;font-size:12px;justify-content:center;white-space:nowrap}
+.zunit{display:flex;flex-direction:column;gap:2px;padding:8px 10px;border-radius:10px;background:var(--table);border:1px solid var(--line);font-size:13px}
 .cgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 8px}
 @media (min-width:560px){.cgrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media (min-width:820px){.cgrid{grid-template-columns:repeat(6,minmax(0,1fr))}}
@@ -343,6 +365,15 @@ select,input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px so
 .bigcard.no .cardui{filter:grayscale(.85)}
 .zinfo{display:flex;flex-direction:column;gap:4px;text-align:left;margin-bottom:10px}
 .zinfo p{margin:2px 0;font-size:14px;line-height:1.55}
+
+.mid.online{padding-right:130px}
+.mid .stamppill{position:absolute;right:46px;top:0;font:inherit;font-size:11px;font-weight:700;color:var(--ink);border:1px solid var(--gold);background:var(--surface);border-radius:999px;padding:3px 10px;cursor:pointer}
+.stampbub.below{animation:stampdn 2.6s ease-out forwards}
+@keyframes stampdn{0%{opacity:0;transform:translate(-50%,-20%) scale(.6)}10%{opacity:1;transform:translate(-50%,0) scale(1.08)}18%{transform:translate(-50%,0) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,20%)}}
+.stampbar{position:fixed;right:10px;left:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 280px);z-index:30;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px;box-shadow:0 6px 18px rgba(0,0,0,.2)}
+.stampbub{position:fixed;z-index:60;transform:translate(-50%,-100%);background:#fff;color:#1A1D29;border:2px solid var(--gold);border-radius:14px;padding:6px 12px;font-weight:800;font-size:15px;white-space:nowrap;pointer-events:none;animation:stampin 2.6s ease-out forwards;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+@keyframes stampin{0%{opacity:0;transform:translate(-50%,-80%) scale(.6)}10%{opacity:1;transform:translate(-50%,-100%) scale(1.08)}18%{transform:translate(-50%,-100%) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-120%)}}
+.dstat{font-size:12px;font-weight:700;color:var(--ink)}
 .badge2{display:inline-block;margin-left:6px;min-width:18px;padding:0 5px;border-radius:99px;background:var(--danger);color:#fff;font-size:11px}
 .codebox{display:flex;gap:6px}.codebox input{flex:1;font-size:12px;padding:8px}
 .savecode{width:100%;min-height:96px;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;color:inherit;word-break:break-all;resize:vertical;box-sizing:border-box}
@@ -655,7 +686,7 @@ function normSave(v){if(typeof v.shards!=='number')v.shards=0;if(!v.stats)v.stat
   if(!v.ach||typeof v.ach!=='object'){const st=v.stats,w=st.cpu.easy[0]+st.cpu.normal[0]+st.cpu.hard[0];
     v.ach={cnt:{win:w,winHardest:st.cpu.hard[0],win_dragon:st.fac.dragon[0],win_machine:st.fac.machine[0],win_magic:st.fac.magic[0],online:st.online[0]+st.online[1]},got:{}};}
   if(!v.ach.cnt||typeof v.ach.cnt!=='object')v.ach.cnt={};if(!v.ach.got||typeof v.ach.got!=='object')v.ach.got={};
-  if(!v.login||typeof v.login!=='object')v.login={date:'',streak:0};if(typeof v.login.best!=='number')v.login.best=v.login.streak||0;if(typeof v.streak!=='number')v.streak=0;if(typeof v.streakBest!=='number')v.streakBest=0;if(!v.story||typeof v.story!=='object')v.story={};const S=v.story;if(!S.clear||typeof S.clear!=='object')S.clear={};if(!S.star||typeof S.star!=='object')S.star={};S.pro=!!S.pro;S.urPending=!!S.urPending;return v;}
+  if(!v.login||typeof v.login!=='object')v.login={date:'',streak:0};if(typeof v.login.best!=='number')v.login.best=v.login.streak||0;if(typeof v.streak!=='number')v.streak=0;if(!v.deckStats||typeof v.deckStats!=='object')v.deckStats={};if(typeof v.streakBest!=='number')v.streakBest=0;if(!v.story||typeof v.story!=='object')v.story={};const S=v.story;if(!S.clear||typeof S.clear!=='object')S.clear={};if(!S.star||typeof S.star!=='object')S.star={};S.pro=!!S.pro;S.urPending=!!S.urPending;return v;}
 function loadSave(){try{const v=JSON.parse(localStorage.getItem(SKEY)||'null');if(v&&typeof v.coins==='number'&&v.owned)return normSave(v);}catch(e){}return normSave(freshSave());}
 function storeSave(){try{localStorage.setItem(SKEY,JSON.stringify(SAVE));return true;}catch(e){return false;}}
 let SAVE=loadSave();storeSave();
@@ -694,6 +725,7 @@ function cleanSaveData(d){
     stats:okStats?s.stats:undefined,daily:okDaily?s.daily:null,tutDone:!!s.tutDone,
     ach:s.ach&&typeof s.ach==='object'?{cnt:Object.fromEntries(Object.entries(s.ach.cnt||{}).filter(([k,n])=>typeof k==='string'&&k.length<20).map(([k,n])=>[k,int(n)])),got:Object.fromEntries(Object.keys(s.ach.got||{}).filter(k=>ACH.some(a=>a.id===k)).map(k=>[k,true]))}:undefined,
     login:s.login&&typeof s.login.date==='string'?{date:s.login.date.slice(0,12),streak:int(s.login.streak),best:int(s.login.best)}:undefined,streak:int(s.streak),streakBest:int(s.streakBest),
+    deckStats:s.deckStats&&typeof s.deckStats==='object'?Object.fromEntries(Object.entries(s.deckStats).slice(0,200).filter(([k,v])=>typeof k==='string'&&k.length<=40&&Array.isArray(v)).map(([k,v])=>[k,[int(v[0]),int(v[1])]])):undefined,
     story:s.story&&typeof s.story==='object'?{clear:Object.fromEntries(Object.keys(s.story.clear||{}).filter(k=>STORY.some(x=>x.id===k)).map(k=>[k,true])),star:Object.fromEntries(Object.keys(s.story.star||{}).filter(k=>STORY.some(x=>x.id===k)).map(k=>[k,true])),pro:!!s.story.pro,urPending:!!s.story.urPending}:undefined});
   const decks=(Array.isArray(d.decks)?d.decks:[]).filter(x=>x&&FAC[x.fac]&&x.cards&&typeof x.cards==='object').slice(0,100).map((x,i)=>{
     const cards={};for(const [id,n] of Object.entries(x.cards))if(C[id]&&C[id].fac===x.fac&&int(n)>0)cards[id]=Math.min(3,int(n));
@@ -754,7 +786,7 @@ function deckError(d,free){
 }
 
 /* ===== 状態 ===== */
-const APP_VER='0.48';
+const APP_VER='0.54';
 /* ===== ストーリーモード（v0.45） ===== */
 const STORY_PRO=[
  ['ナレーション','はるか昔、ある文明が、強大な存在の「魂」をカードに封じ込めた。'],
@@ -1023,6 +1055,13 @@ const SORTS=[['cost','コスト順'],['rar','レア度順'],['atk','攻撃力順
 const RARORD={C:0,UC:1,R:2,VR:3,UR:4,LR:5},TYPEORD={monster:0,spell:1,finisher:2};
 function sortCards(list){const a=[...list];const by={cost:c=>[c.cost,TYPEORD[c.type]],rar:c=>[-RARORD[c.rar],c.cost],atk:c=>[-(c.atk??-1),c.cost],type:c=>[TYPEORD[c.type],c.cost]}[cardSort]||(c=>[c.cost]);
   return a.sort((x,y)=>{const p=by(x),q=by(y);for(let i=0;i<p.length;i++)if(p[i]!==q[i])return p[i]-q[i];return x.id<y.id?-1:1;});}
+function zoomUnitInfo(){
+  if(!G||!ZOOM||ZOOM.lane==null)return '';const p=ZOOM.side==='me'?vme():vop(),u=p.field[ZOOM.lane];if(!u||u.id!==ZOOM.id)return '';
+  const c=C[u.id],a=unitAtk(p,ZOOM.lane),t=[];
+  t.push(`今の攻撃力 <b>${a}</b>${a!==c.atk?`（元は${c.atk}）`:''}`);if(u.partner)t.push('パートナー');if(u.shield)t.push('幻影あり（1回だけ破壊されない）');if(u.debuff)t.push(`攻撃力-${u.debuff}（相手の効果）`);
+  if(ZOOM.side==='me'&&u.summoned&&!c.rush)t.push('出したばかりで、このターンは攻撃できない');
+  return `<div class="zunit">${t.map(x=>`<span>${x}</span>`).join('')}</div>`;
+}
 function zoomOv(){
   const c=C[ZOOM&&ZOOM.id];if(!c)return '';const n=owned(c.id);
   let act='';
@@ -1034,12 +1073,144 @@ function zoomOv(){
   return `<div class="ov zoomov" data-act="zoom-close"><div class="ovbox zoombox" data-act="noop">
     <div class="bigcard ${n?'':'no'}">${cardUI(c,{tag:'div'})}</div>
     <div class="zinfo"><b>${esc(c.name)}</b><span class="dm">${FAC[c.fac]}・${TYPE[c.type]}・${RARNAME[c.rar]}・コスト${c.cost}${c.atk!=null?`・攻${c.atk} 体${c.def} 打${c.hit}`:''}</span>
-      ${c.text?`<p>${esc(c.text)}</p>`:'<p class="dm">（能力なし）</p>'}<span>所持：${n?`${n}枚`:'まだ持っていません'}</span></div>
+      ${c.text?`<p>${esc(c.text)}</p>`:'<p class="dm">（能力なし）</p>'}${scr==='game'?zoomUnitInfo():`<span>所持：${n?`${n}枚`:'まだ持っていません'}</span>`}</div>
     ${act}<button class="btn sub" data-act="zoom-close">閉じる</button></div></div>`;
 }
+/* ===== おまかせデッキ作成（v0.49） ===== */
+function cardScore(c){
+  const r=({C:0,UC:1,R:2,VR:3,UR:4,LR:5})[c.rar]*0.35;
+  if(c.type==='finisher')return 4+r;
+  if(c.type==='spell')return 2.4+r;
+  let v=c.atk+c.def*0.6+c.hit*1.5;
+  if(c.rush)v+=1.2;if(c.move)v+=0.6;if(c.twice)v+=2;if(c.triple)v+=3.5;if(c.ward)v+=1.5;if(c.seal)v+=1;if(c.shield)v+=1;
+  if(c.reso)v+=c.reso*0.6;if(c.ally)v+=c.ally*1;if(c.low)v+=c.low*0.4;if(c.enter)v+=1.5;if(c.upkeep)v+=2;if(c.pierce)v+=0.8;if(c.boost)v+=0.8;if(c.death)v+=0.8;if(c.killDmg)v+=0.6;
+  return v/(c.cost+1.5)*3+r;
+}
+const AUTO_CURVE={1:3,2:5,3:5,4:4,5:2,6:1,7:1},AUTO_SPELLS=8,AUTO_BURSTS=2;
+function autoFill(d,ownedFn,size){
+  const cards={...d.cards},cnt=()=>Object.values(cards).reduce((a,b)=>a+b,0);
+  const pool=DB.filter(c=>c.fac===d.fac&&ownedFn(c.id)>0);
+  const room=c=>Math.min(3,ownedFn(c.id))-(cards[c.id]||0);
+  const add=c=>{cards[c.id]=(cards[c.id]||0)+1;};
+  const best=f=>pool.filter(c=>f(c)&&room(c)>0).sort((x,y)=>cardScore(y)-cardScore(x))[0];
+  const have=f=>pool.filter(f).reduce((a,c)=>a+(cards[c.id]||0),0);
+  const fill=(f,goal)=>{while(cnt()<size&&have(f)<goal){const c=best(f);if(!c)break;add(c);}};
+  fill(c=>c.type==='finisher',AUTO_BURSTS);
+  for(const [k,t] of Object.entries(AUTO_CURVE))fill(c=>c.type==='monster'&&Math.min(c.cost,7)===+k,t);
+  fill(c=>c.type==='spell',AUTO_SPELLS);
+  fill(c=>c.type==='monster'&&c.cost<=5,99);fill(c=>c.type!=='finisher',99);fill(()=>true,99);
+  let partner=d.partner&&cards[d.partner]?d.partner:'';
+  if(!partner){const ms=pool.filter(c=>c.type==='monster'&&cards[c.id]&&c.cost>=2&&c.cost<=5).sort((x,y)=>(RARORD[y.rar]-RARORD[x.rar])||(cardScore(y)-cardScore(x)));partner=(ms[0]||pool.find(c=>c.type==='monster'&&cards[c.id])||{}).id||'';}
+  return {cards,partner};
+}
+
+function curveHTML(d){
+  const b=[0,0,0,0,0,0],lab=['0-1','2','3','4','5','6+'];let mo=0,sp=0,fi=0;
+  for(const [id,n] of Object.entries(d.cards)){const c=C[id];if(!c)continue;b[Math.max(0,Math.min(5,c.cost-1))]+=n;if(c.type==='monster')mo+=n;else if(c.type==='spell')sp+=n;else fi+=n;}
+  const mx=Math.max(8,...b);
+  return `<div class="box curve"><div class="cvbars">${b.map((n,i)=>`<div class="cvb"><span class="cvn">${n||''}</span><span class="cvf" style="height:${Math.round(n*100/mx)}%"></span><span class="cvl">${lab[i]}</span></div>`).join('')}</div>
+    <div class="cvt"><b>コストの分布</b><span>モンスター ${mo}</span><span>呪文 ${sp}</span><span>バースト ${fi}</span></div></div>`;
+}
+/* 対戦中：カードを長押しで拡大（v0.49） */
+const LP={t:null,x:0,y:0,fired:false};
+function lpTarget(el){
+  const a=el.dataset.act;
+  if(a==='hand'){const id=vme().hand[+el.dataset.idx];return id?{id}:null;}
+  if(a==='slot'){const p=el.dataset.side==='me'?vme():vop(),u=p.field[+el.dataset.lane];return u?{id:u.id,side:el.dataset.side,lane:+el.dataset.lane}:null;}
+  if(a==='buddy'||a==='pinfo'){const p=el.dataset.side==='me'?vme():vop();return p.buddy==='zone'?{id:p.buddyId}:null;}
+  return null;
+}
+document.addEventListener('pointerdown',e=>{
+  LP.fired=false;
+  if(scr!=='game'||!G||G.over||G.passing||e.button>0)return;
+  const el=e.target.closest('[data-act]');if(!el)return;const t=lpTarget(el);if(!t)return;
+  clearTimeout(LP.t);LP.x=e.clientX;LP.y=e.clientY;
+  LP.t=setTimeout(()=>{LP.t=null;if(DRAG.on||!G||scr!=='game')return;DRAG.start=null;DRAG.src=null;LP.fired=true;ZOOM=t;sfx('tap');try{if(navigator.vibrate&&SND.set.se)navigator.vibrate(15);}catch(x){}render();},450);
+});
+document.addEventListener('pointermove',e=>{if(LP.t&&Math.hypot(e.clientX-LP.x,e.clientY-LP.y)>10){clearTimeout(LP.t);LP.t=null;}});
+document.addEventListener('pointerup',()=>{clearTimeout(LP.t);LP.t=null;});
+document.addEventListener('pointercancel',()=>{clearTimeout(LP.t);LP.t=null;});
+/* 長押しを離したときの「タップ」は無視する（次に指を置くまで） */
+document.addEventListener('click',e=>{if(LP.fired){LP.fired=false;e.stopImmediatePropagation();e.preventDefault();}},true);
+
+/* ===== 確認メッセージ・スタンプ・デッキの戦績・ミッションの引き直し（v0.50） ===== */
+const OPT=(()=>{try{return Object.assign({confirm:true},JSON.parse(localStorage.getItem('resonance.opt')||'{}'));}catch(e){return {confirm:true};}})();
+const optSave=()=>{try{localStorage.setItem('resonance.opt',JSON.stringify(OPT));}catch(e){}};
+let CONF=null;
+function usableCards(){const p=me();let n=p.hand.filter(id=>!whyNot(C[id],false)).length;if(p.buddy==='zone'&&!whyNot(C[p.buddyId],true))n++;return n;}
+function readyAttackers(){const p=me();return [0,1,2].filter(l=>canAttack(p.field[l],p,l)).length;}
+function warnFor(a){
+  if(!OPT.confirm||!G||G.over||cpuNow()||netWait())return null;
+  const p=me(),noCh=G.phase==='charge'&&p.hand.length>0;
+  if(a==='main'){const rest=p.hand.length-(sel&&sel.kind==='hand'?1:0);return G.phase==='charge'&&rest>0?'まだチャージしていません。チャージせずにメインフェーズへ進みますか？':null;}
+  const m=[];if(noCh)m.push('まだチャージしていません');
+  if(actPhase()){const n=usableCards();if(n)m.push(`使えるカードが${n}枚あります`);}
+  if(a==='end'){const k=readyAttackers();if(k)m.push(`攻撃できるモンスターが${k}体います`);}
+  if(!m.length)return null;
+  return m.join('。')+'。'+(a==='to-attack'?'アタックフェーズへ進みますか？':'ターンを終わりますか？');
+}
+function confOv(){return CONF?`<div class="ov"><div class="ovbox"><h2>確認</h2><p>${esc(CONF.msg)}</p>
+  <button class="btn go bigbtn" data-act="conf-no">戻る</button><button class="btn" data-act="conf-yes">${CONF.yes||'このまま進む'}</button>
+  <button class="btn sub" data-act="conf-off">今後この確認を出さない</button></div></div>`:'';}
+/* スタンプ（通信対戦） */
+const STAMPS=['👋 よろしく！','👍 ナイス！','😵 やられた〜','🤔 考え中…','🔥 いい勝負！','🙏 ありがとう！'];
+let STAMP_OPEN=false,STAMP_LAST=0;
+function showStamp(pi,i){const el=document.querySelector(`.info[data-pi="${pi}"]`)||document.body;const r=el.getBoundingClientRect();
+  const d=document.createElement('div');const below=r.top<70;d.className='stampbub'+(below?' below':'');d.textContent=STAMPS[i]||'';d.style.left=(r.left+r.width/2)+'px';d.style.top=(below?r.bottom+6:r.top-6)+'px';
+  document.body.appendChild(d);setTimeout(()=>d.remove(),2600);}
+function sendStamp(i){if(!NET.active||!NROOM||Date.now()-STAMP_LAST<1500)return;STAMP_LAST=Date.now();NET.stampN=(NET.stampN||0)+1;
+  NROOM.presence({stamp:{i,n:NET.stampN}}).catch(()=>{});STAMP_OPEN=false;render();showStamp(NET.me,i);}
+function stampHTML(){if(!NET.active||!G||G.over)return '';
+  return `${STAMP_OPEN?`<div class="stampbar">${STAMPS.map((t,i)=>`<button class="chip" data-act="stamp" data-i="${i}">${t}</button>`).join('')}</div>`:''}`;}
+/* デッキごとの戦績 */
+function deckResult(id,won){if(!id)return;const r=SAVE.deckStats[id]||[0,0];r[won?0:1]++;SAVE.deckStats[id]=r;}
+/* チャージフェーズにカードを使う・移動するときは、メインフェーズへ進めてから行う */
+function tryMain(fn){const s0=sel&&{...sel};const go=()=>{if(G.phase==='charge'){log('チャージしなかった');toMain();}sel=s0;fn();};
+  if(G.phase!=='charge')return fn();const w=warnFor('main');if(w){CONF={msg:w,act:'fn',go,yes:'メインフェーズへ進む'};render();return;}go();}
+function tryUse(target){tryMain(()=>useCard(target));}
+function skipCharge(){if(G&&G.phase==='charge')log('チャージしなかった');}
+function confRun(x,c){if(!G||G.over)return render();if(x==='fn'){if(c&&c.go)c.go();}else if(x==='to-attack'){skipCharge();toAttack();}else if(x==='end'){skipCharge();endTurn();}else render();}
+/* ===== ボタンの帯なしの操作（v0.53）：進むボタンは自分のライフ表示に、案内は盤面の下の1行に ===== */
+function actionBtn(){
+  if(!G||G.over||G.passing)return '';
+  if(netWait())return '<span class="waitlbl">相手のターン</span>';
+  if(cpuNow())return '<span class="waitlbl">CPU考え中…</span>';
+  if(G.phase==='attack')return '<button class="btn go actbtn" data-act="end">ターン終了 ▶</button>';
+  return '<button class="btn go actbtn" data-act="to-attack">アタックへ ▶</button>';
+}
+const myTurnUI=()=>!!G&&!G.over&&!G.passing&&!cpuNow()&&!netWait();
+const hitTarget=()=>myTurnUI()&&G.phase==='attack'&&!!sel&&((sel.kind==='unit'&&sel.side==='me'&&canAttack(me().field[sel.lane],me(),sel.lane)&&canHitPlayer([sel.lane]))||(sel.kind==='link'&&sel.lanes.length>=2&&canHitPlayer(sel.lanes)));
+const chargeTarget=()=>myTurnUI()&&G.phase==='charge'&&!!sel&&sel.kind==='hand';
+/* 選んでいるものの案内（盤面の下のログの行に出す） */
+function selHint(){
+  if(!myTurnUI()||!sel)return null;const p=vme(),ph=G.phase,x='<button class="mbtn sub" data-act="cancel" aria-label="選ぶのをやめる">✕</button>';
+  if(sel.kind==='hand'||sel.kind==='buddy'){const c=selCard();if(!c)return null;const why=whyNot(c,sel.kind==='buddy');
+    let t=why||(needsTarget(c)?(c.type==='monster'?'光っているマスへ出す':'光っている対象を選ぶ'):'「使う」で発動');
+    if(chargeTarget())t+='／チャージなら光っているチャージゾーンへ';
+    return `<b>${esc(c.name)}</b><span>${esc(t)}</span>${!why&&!needsTarget(c)?'<button class="mbtn go" data-act="use">使う</button>':''}${x}`;}
+  if(sel.kind==='move'){const u=p.field[sel.lane];if(!u)return null;return `<b>${esc(C[u.id].name)}</b><span>移動先の空きマスをタップ</span>${x}`;}
+  if(sel.kind==='link'){const n=sel.lanes.length,sum=sel.lanes.reduce((a,l)=>a+unitAtk(p,l),0);
+    return `<b>連携 ${n}体・攻撃力${sum}</b><span>${n<2?'一緒に攻撃する味方をタップ':'敵をタップ'+(hitTarget()?'（光っている相手のライフ表示で本体）':'')}</span>${x}`;}
+  if(sel.kind==='unit'){const pl=sel.side==='me'?p:vop(),u=pl.field[sel.lane];if(!u)return null;const c=C[u.id];let t='';
+    if(sel.side!=='me')t='長押しで詳しく見られます';
+    else if(ph!=='attack')t='攻撃はアタックフェーズで';
+    else if(!canAttack(u,pl,sel.lane))t=sealed(pl,sel.lane)?'正面の封印で攻撃できません':(u.atkLeft<=0?'このターンは攻撃済み':'出したターンは攻撃できません');
+    else{const others=[0,1,2].some(l=>l!==sel.lane&&canAttack(pl.field[l],pl,l));t='敵をタップ'+(hitTarget()?'・光っている相手のライフ表示で本体':'')+(others?'・味方をタップで連携':'');}
+    return `<b>${esc(c.name)}</b><span>攻${unitAtk(pl,sel.lane)}　${esc(t)}</span>${x}`;}
+  return null;
+}
+function graveOv(){if(!sel||sel.kind!=='grave'||!G)return '';const pl=sel.side==='me'?vme():vop();
+  return `<div class="ov" data-act="cancel"><div class="ovbox" data-act="noop"><h2>${sel.side==='me'?'自分':'相手'}の墓地（${pl.grave.length}枚）</h2>
+    <div class="cgrid">${pl.grave.map(id=>`<div class="cgcell">${cardUI(C[id],{tag:'div',mini:1})}</div>`).join('')||'<p class="dm">まだありません</p>'}</div>
+    <button class="btn sub" data-act="cancel">閉じる</button></div></div>`;}
 /* ===== お知らせ（パッチノート）v0.44 =====
    遊ぶ人向けの更新内容。新しいものを先頭に足す。important:true は更新後の起動時に自動で表示する */
 const NEWS=[
+ {v:'0.54',date:'2026-10-22',title:'ルールとあそびかたを最新の内容に',items:['ルール画面に「操作」の項目を足し、チャージ・攻撃・本体攻撃・連携・移動のやり方をまとめました','あそびかた（チュートリアル）の説明も、今の操作に合わせて書き直しました']},
+ {v:'0.53',date:'2026-10-22',title:'ボタンの帯をなくして、盤面を広く',items:['画面下のボタンの帯をなくしました。「アタックへ」「ターン終了」は、自分のライフ表示の右にあります。メニューは相手のライフ表示の右の☰','チャージは、手札をタップして光ったチャージゾーンをタップ（ドラッグでもOK）','本体攻撃は、モンスターを選んで光った相手のライフ表示をタップ。連携は、モンスターを選んでほかの味方をタップ','選んでいるカードの案内や「使う」ボタンは、盤面の下の1行に出ます']},
+ {v:'0.52',date:'2026-10-22',important:true,title:'チャージまわりの画面と確認を変更',items:['ターンの最初はチャージフェーズのまま、画面をすっきりさせました（フェーズの帯と「しない」ボタンをなくしました）','チャージは、手札をタップして「チャージ」か、チャージゾーンへドラッグ。チャージするとメインフェーズへ進みます','チャージせずにカードを使おうとすると確認が出て、「メインフェーズへ進む」でそのまま使えます。チャージしていない・使えるカードがあるのにアタックへ進むときも確認が出ます']},
+ {v:'0.50',date:'2026-10-22',title:'確認メッセージ・スタンプ・デッキの戦績',items:['チャージしないで進むとき、使えるカードを残してアタックへ進むとき、攻撃できるモンスターを残してターンを終えるときに確認が出ます（設定でオフにできます）','通信対戦で、💬ボタンからスタンプを送れるようになりました','デッキ一覧に、デッキごとの勝ち数・負け数を表示します','デイリーミッションを1日1回、引き直せます']},
+ {v:'0.49',date:'2026-10-22',title:'対戦中のカード拡大とおまかせデッキ',items:['対戦中、手札や場のカード・パートナーを長押しすると、大きく表示して効果を読めます。場のモンスターは、今の攻撃力なども出ます','デッキ作りに「おまかせ」を追加：持っているカードから30枚を自動で組みます。途中まで選んだカードを残して、残りだけ埋めることもできます','デッキ作りの画面に、コストの分布グラフを表示するようにしました']},
  {v:'0.48',date:'2026-10-22',title:'コレクションとデッキ作りでカードが見えるように',items:['コレクションとデッキ作りの画面で、カードを絵つきで並べて表示するようにしました','カードをタップすると大きく表示され、効果をじっくり読めます。分解・交換や、デッキの枚数変更・パートナー設定もそこからできます','コスト順・レア度順・攻撃力順・種類順に並べ替えられます。コレクションは「持っている／持っていない」で絞り込めます']},
  {v:'0.47',date:'2026-10-22',title:'連続ログインの実績を追加',items:['7日・30日・100日連続でログインすると、実績でコインがもらえます（100・300・500コイン）','これまでの連続日数も数に入っています']},
  {v:'0.46',date:'2026-10-22',title:'コインの手に入れ方が増えました',items:['ログインボーナス：毎日最初に開くとコイン。7日続けると200コイン','実績：一度だけもらえる目標が28個。「ミッション・実績・戦績」から受け取れます','勝ち方ボーナス：CPU戦でノーダメージ勝利+30、ソウルバーストでとどめ+20、3連勝ごとに+50']},
@@ -1093,8 +1264,9 @@ function makePlayer(deck,i){
     buddy:'zone',buddyCalled:false,finUsed:false,barrier:false,spells:0,buddyId:deck.partner};
 }
 function newGame(decks,opt){
+  ZOOM=null;CONF=null;STAMP_OPEN=false;
   BLOG=[];BLOG_N=0;showLog=false;
-  G={p:[makePlayer(decks[0],0),makePlayer(decks[1],1)],log:[],over:null,passing:true,phase:'draw',cpu:setup.mode==='cpu'?1:null,level:setup.level};
+  G={deckIds:[decks[0].id||null,decks[1].id||null],p:[makePlayer(decks[0],0),makePlayer(decks[1],1)],log:[],over:null,passing:true,phase:'draw',cpu:setup.mode==='cpu'?1:null,level:setup.level};
   G.cur=setup.forceFirst!=null?setup.forceFirst:(Math.random()<.5?0:1);setup.forceFirst=null;G.first=G.cur;sel=null;scr='game';RESULT_DONE=false;
   if(G.cpu!=null&&G.level==='hard'){const c=G.p[G.cpu];c.charge.push(c.deck.shift());log('むずかしいCPUはチャージ1枚からスタート');}
   if(opt&&opt.onSetup)opt.onSetup(G);
@@ -1112,15 +1284,19 @@ function startTurn(){
     if(p.deck.length===0){gameOver(1-G.cur,`${pn(G.cur)}の山札が切れた`);return;}
     p.hand.push(p.deck.shift());log('ドロー');
   }
-  p.energy=0;
+  p.energy=p.charge.length;
   p.field.forEach(u=>{if(u){u.summoned=false;u.atkLeft=atkTimes(C[u.id]);u.temp=0;u.moved=false;}});
   p.field.forEach(u=>{if(u&&C[u.id].upkeep&&!G.over){log(`${C[u.id].name}の効果`);subFx(p,G.p[1-p.i],C[u.id].upkeep);}});
   if(G.over)return;
-  G.phase='charge';render();
+  G.phase='charge';sel=null;render();
 }
+/* チャージ：チャージフェーズに1枚。チャージするとメインフェーズへ（v0.52）。
+   チャージフェーズでもカードを選べて、チャージせずにカードを使う・移動すると（確認のあと）メインフェーズへ進む */
 function chargeCard(idx){
-  const p=me();p.charge.push(p.hand.splice(idx,1)[0]);sfx('charge');log(`手札を1枚チャージ（チャージ${p.charge.length}枚）`);toMain();
+  const p=me();if(G.phase!=='charge'||idx==null||!p.hand[idx])return;
+  p.charge.push(p.hand.splice(idx,1)[0]);sfx('charge');log(`手札を1枚チャージ（チャージ${p.charge.length}枚）`);toMain();
 }
+const actPhase=()=>!!G&&(G.phase==='main'||G.phase==='charge');
 function toMain(){const p=me();p.energy=p.charge.length;G.phase='main';sel=null;log(`メインフェーズ：ソウル${p.energy}`);render();}
 function toAttack(){G.phase='attack';sel=null;render();}
 function endTurn(){
@@ -1199,7 +1375,7 @@ function validTargets(c){
 const needsTarget=c=>c.type==='monster'||!!c.tgt;
 function whyNot(c,isBuddy){
   const p=me();
-  if(G.phase!=='main')return 'カードはメインフェーズで使えます';
+  if(!actPhase())return 'カードはメインフェーズで使えます';
   if(isBuddy){
     if(p.buddy==='field')return 'パートナーはすでに場にいます';
     if(p.buddy==='gone'||p.buddy==='cool')return 'パートナーは破壊されて墓地にあります';
@@ -1263,7 +1439,7 @@ function useCard(target){
   }
   sel=null;render();
 }
-const canMove=(u,p)=>!!(u&&G.phase==='main'&&C[u.id].move&&!u.moved&&p.field.some(x=>!x));
+const canMove=(u,p)=>!!(u&&actPhase()&&C[u.id].move&&!u.moved&&p.field.some(x=>!x));
 function moveUnit(from,to){
   const p=me(),u=p.field[from];if(!canMove(u,p)||p.field[to])return;
   p.field[to]=u;p.field[from]=null;u.moved=true;
@@ -1419,7 +1595,7 @@ let ROOM, NROOM=null;
 const freshNet=()=>({active:false,me:0,seq:0,lastJSON:'',stage:'idle',code:'',codeInput:'',err:'',oppPeer:null,oppDeck:null,oppLeft:false,peerCount:0,deckId:(NET&&NET.deckId)||'st-dragon'});
 let NET=null;NET=freshNet();
 /* 中継サーバー通信（MQTT）：Claudeの外で開いたとき用 */
-const NET_VER='v043';
+const NET_VER='v052';
 const BROKERS=[['wss://broker.emqx.io:8084/mqtt','1'],['wss://broker.hivemq.com:8884/mqtt','2'],['wss://test.mosquitto.org:8081','3']];
 function connectBroker(i,willTopic){return new Promise((res,rej)=>{
   if(i>=BROKERS.length){rej(new Error('no broker'));return;}
@@ -1521,6 +1697,7 @@ function netPeers(ch){
   if(!opp||!mine){render();return;}
   NET.oppPeer=opp.peer;
   const pr=opp.presence||{};
+  if(pr.stamp&&typeof pr.stamp.n==='number'&&pr.stamp.n>(NET.stampSeen||0)){NET.stampSeen=pr.stamp.n;if(G&&NET.active&&scr==='game')setTimeout(()=>showStamp(1-NET.me,pr.stamp.i|0),50);}
   if(!NET.active&&mine.peer<opp.peer&&pr.deck){const d=validOppDeck(pr.deck);if(d){NET.oppDeck=d;startOnline();return;}}
   if(pr.st&&typeof pr.seq==='number'&&pr.seq>NET.seq){adopt(pr.st,pr.seq);return;}
   render();
@@ -1657,6 +1834,7 @@ document.addEventListener('visibilitychange',()=>{if(!SND.ctx)return;if(document
 function soundHTML(){
   return `<div class="sound"><button class="chip" aria-pressed="${SND.set.bgm}" data-act="snd-bgm">BGM ${SND.set.bgm?'オン':'オフ'}</button>
     <button class="chip" aria-pressed="${SND.set.se}" data-act="snd-se">効果音 ${SND.set.se?'オン':'オフ'}</button>
+    <button class="chip" aria-pressed="${OPT.confirm}" data-act="opt-confirm">確認 ${OPT.confirm?'オン':'オフ'}</button>
     <label class="vol">音量<input type="range" min="0" max="100" step="5" value="${Math.round(SND.set.vol*100)}" data-act="snd-vol" aria-label="音量"></label></div>`;
 }
 
@@ -1757,10 +1935,10 @@ function recordResult(){
   const st=SAVE.stats;
   if(G.cpu!=null){
     const mine=1-G.cpu,won=G.over.w===mine,fac=G.p[mine].fac;
-    st.cpu[G.level][won?0:1]++;st.fac[fac][won?0:1]++;
+    st.cpu[G.level][won?0:1]++;st.fac[fac][won?0:1]++;deckResult(G.deckIds&&G.deckIds[mine],won);
     if(won){track('win');if(G.level!=='easy')track('winHard');if(G.level==='hard')track('winHardest');track('win_'+fac);}
   }else if(NET.active){
-    const won=G.over.w===NET.me;st.online[won?0:1]++;st.fac[G.p[NET.me].fac][won?0:1]++;
+    const won=G.over.w===NET.me;st.online[won?0:1]++;deckResult(NET.deckId,won);st.fac[G.p[NET.me].fac][won?0:1]++;
   }else return;
   storeSave();
 }
@@ -1773,7 +1951,8 @@ function missionHTML(){
     return `<div class="mis"><div class="mt"><span>${esc(m.text)}</span><span class="mr">${m.reward}コイン</span></div>
       <div class="bar"><span style="width:${Math.round(v*100/m.goal)}%"></span></div>
       <div class="mt"><span style="font-size:12px;color:var(--muted)">${v} / ${m.goal}</span>
-      ${got?'<span style="font-size:12px;color:var(--ok)">受け取り済み</span>':`<button class="btn go" data-act="claim" data-id="${id}" ${done?'':'disabled'}>受け取る</button>`}</div></div>`;}).join('')}</div>
+      ${got?'<span style="font-size:12px;color:var(--ok)">受け取り済み</span>':(done?`<button class="btn go" data-act="claim" data-id="${id}">受け取る</button>`:`<span style="display:flex;gap:6px">${SAVE.daily.rerolled?'':`<button class="btn sub" data-act="mis-reroll" data-id="${id}">引き直す</button>`}<button class="btn go" data-act="claim" data-id="${id}" disabled>受け取る</button></span>`)}</div></div>`;}).join('')}
+  <span style="font-size:12px;color:var(--muted)">${SAVE.daily.rerolled?'今日の引き直しは使いました':'まだ終わっていないミッションを、1日1回だけ別のものに引き直せます'}</span></div>
   ${achHTML()}
   <div class="box stack"><b>戦績</b>
     <div class="stat"><span>CPU かんたん</span><span>${wl(st.cpu.easy)}</span></div>
@@ -1814,11 +1993,11 @@ let codeShow=null,codeIn='',codeMsg='';
 let tutPage=0;
 const TUT_PAGES=[
  {icon:'🎯',title:'勝ち方',body:'相手の<b>ライフ10</b>を0にしたら勝ち！<br>モンスターで攻撃したり、呪文でダメージを与えたりして削っていきます。'},
- {icon:'🔄',title:'ターンの流れ',body:'<b>ドロー</b>：1枚引く<br><b>チャージ</b>：手札を1枚、チャージゾーンに置ける<br><b>メイン</b>：カードを使う<br><b>アタック</b>：モンスターで攻撃<br><b>エンド</b>：ターン終了'},
- {icon:'⚡',title:'チャージとソウル',body:'カードを使うには<b>ソウル</b>が必要です。<br>ソウルは<b>チャージゾーンの枚数</b>ぶん、毎ターン使えます。<br>まずは毎ターン1枚ずつチャージしていくのが基本です。'},
- {icon:'🃏',title:'場とモンスター',body:'場は<b>レフト・センター・ライト</b>の3マス。<br>出したばかりのモンスターは、そのターンは攻撃できません（<b>速攻</b>は例外）。<br>カードの「攻」は攻撃力、「体」は体力、「打」は相手ライフへのダメージです。'},
- {icon:'⚔️',title:'攻撃',body:'攻撃したい<b>敵モンスターを選んで</b>攻撃。攻撃力が相手の体力以上なら破壊できます。<br>相手の<b>センターが空いている</b>ときだけ、相手の本体を直接攻撃できます。<br>ただし<b>速攻</b>か<b>移動</b>を持つモンスターは、自分の正面が空いていれば本体を狙えます。'},
- {icon:'🤝',title:'連携攻撃',body:'2〜3体で<b>同時に攻撃</b>すると、攻撃力を合計できます。<br>1体では倒せない硬いモンスターも、みんなで倒しましょう。'},
+ {icon:'🔄',title:'ターンの流れ',body:'<b>ドロー</b>：1枚引く<br><b>チャージ</b>：手札を1枚、チャージゾーンに置ける<br><b>メイン</b>：カードを使う<br><b>アタック</b>：モンスターで攻撃<br><b>エンド</b>：ターン終了<br>次へ進むボタン（「アタックへ ▶」「ターン終了 ▶」）は、<b>自分のライフ表示の右</b>にあります。'},
+ {icon:'⚡',title:'チャージとソウル',body:'カードを使うには<b>ソウル</b>が必要です。ソウルは<b>チャージゾーンの枚数</b>ぶん、毎ターン使えます。<br>チャージは、手札をタップして<b>光ったチャージゾーンをタップ</b>（ドラッグでもOK）。まずは毎ターン1枚ずつチャージするのが基本です。<br>チャージせずにカードを使うと、そのままメインフェーズへ進みます。'},
+ {icon:'🃏',title:'場とモンスター',body:'場は<b>レフト・センター・ライト</b>の3マス。手札をタップして、光ったマスをタップすると出せます。<br>出したばかりのモンスターは、そのターンは攻撃できません（<b>速攻</b>は例外）。<br>「攻」は攻撃力、「体」は体力、「打」は相手ライフへのダメージ。カードを<b>長押し</b>すると大きく見られます。'},
+ {icon:'⚔️',title:'攻撃',body:'緑に光るモンスターをタップして、<b>攻撃したい敵をタップ</b>。攻撃力が相手の体力以上なら破壊できます。<br>相手の<b>センターが空いている</b>ときだけ、本体を攻撃できます。狙えるときは<b>相手のライフ表示が光る</b>ので、そこをタップ。<br>ただし<b>速攻</b>か<b>移動</b>を持つモンスターは、自分の正面が空いていれば本体を狙えます。'},
+ {icon:'🤝',title:'連携攻撃',body:'モンスターを選んでから、<b>ほかの味方をタップ</b>すると連携。2〜3体の攻撃力を合計できます。<br>1体では倒せない硬いモンスターも、みんなで倒しましょう。'},
  {icon:'✨',title:'パートナーとソウルバースト',body:'<b>パートナー</b>はいつでも呼べる相棒。初めて呼ぶとライフ+1。<br>ライフが<b>4以下</b>になると、1ゲームに1回だけ大技<b>ソウルバースト</b>が使えます。逆転のチャンス！'},
 ];
 function splashHTML(){
@@ -1852,18 +2031,18 @@ function coachTip(){
   if(!mine)return T('opp','相手のターンです。相手の動きを見て待ちましょう。');
   const ready=[0,1,2].filter(l=>canAttack(p.field[l],p,l));
   const list=[];
-  if(G.phase==='charge')list.push(T('charge','まず手札を1枚タップして「チャージする」！チャージの枚数が、毎ターン使えるソウルになります。'));
+  if(G.phase==='charge'&&p.hand.length)list.push(T('charge','まず手札を1枚チャージ！手札をタップして、光ったチャージゾーンをタップ（ドラッグでもOK）。チャージの枚数が、毎ターン使えるソウルになります。'));
   if(G.phase==='main'){
     list.push(T('main','ソウル以内のコストのカードが使えます。モンスターをタップして、光ったマスに出してみよう。'));
     if(p.buddy==='zone'&&p.energy>=C[p.buddyId].cost)list.push(T('partner','パートナーゾーンのカードも呼べます。初めて呼ぶとライフ+1！'));
-    if(p.field.some(u=>u&&u.summoned&&!C[u.id].rush))list.push(T('sick','出したばかりのモンスターは、このターンは攻撃できません。出し終わったら「アタックへ」を押そう。'));
+    if(p.field.some(u=>u&&u.summoned&&!C[u.id].rush))list.push(T('sick','出したばかりのモンスターは、このターンは攻撃できません。出し終わったら、自分のライフ表示の右の「アタックへ」を押そう。'));
     if(p.life<=4&&!p.finUsed&&p.hand.some(id=>C[id].type==='finisher'))list.push(T('burst','ライフが4以下なので、ソウルバーストが使えます！逆転のチャンス！'));
   }
   if(G.phase==='attack'){
-    if(ready.length)list.push(T('attack','緑に光るモンスターをタップして、攻撃したい敵をタップ。相手のセンターが空いていれば「本体」も狙えます（速攻・移動持ちは、正面が空いていてもOK）。'));
-    if(ready.length>=2&&o.field.some(Boolean))list.push(T('link','「連携」を使うと、2〜3体の攻撃力を合計できます。硬い敵はみんなで倒そう！'));
+    if(ready.length)list.push(T('attack','緑に光るモンスターをタップして、攻撃したい敵をタップ。本体を狙えるときは相手のライフ表示が光るので、そこをタップ（速攻・移動持ちは、正面が空いていてもOK）。'));
+    if(ready.length>=2&&o.field.some(Boolean))list.push(T('link','モンスターを選んだあと、ほかの味方をタップすると「連携」。2〜3体の攻撃力を合計できます。硬い敵はみんなで倒そう！'));
     if(ready.length&&!o.field[1])list.push(T('center','相手のセンターが空いています！どのモンスターでも本体を攻撃できます。'));
-    if(!ready.length)list.push(T('end','攻撃できるモンスターがいなければ「ターン終了」で相手の番です。'));
+    if(!ready.length)list.push(T('end','攻撃できるモンスターがいなければ、ライフ表示の右の「ターン終了」で相手の番です。'));
   }
   return list.find(Boolean)||null;
 }
@@ -1911,7 +2090,8 @@ function pzoneHTML(p,side,pos){
 }
 function chargeHTML(p,pos){
   const n=p.charge.length;
-  return `<div class="charge" data-pi="${p.i}" style="${pos}" aria-label="チャージゾーン ${n}枚"><span class="n">${n}</span><div class="stk">${Array.from({length:Math.min(n,8)},()=>'<span></span>').join('')}</div><span class="vt">チャージゾーン</span></div>`;
+  const tg=p.i===vme().i&&chargeTarget();
+  return `<div class="charge${tg?' tgt':''}" data-pi="${p.i}" ${tg?'data-act="charge" role="button"':''} style="${pos}" aria-label="チャージゾーン ${n}枚"><span class="n">${n}</span><div class="stk">${Array.from({length:Math.min(n,8)},()=>'<span></span>').join('')}</div><span class="vt">チャージゾーン</span></div>`;
 }
 function pilesHTML(p,side,pos,order){
   const deck=`<div class="pile deck"><b>${p.deck.length}</b>山札</div>`;
@@ -1919,9 +2099,10 @@ function pilesHTML(p,side,pos,order){
   return `<div class="piles" style="${pos}">${order==='gd'?grave+deck:deck+grave}</div>`;
 }
 function infoHTML(p,isMe){
-  return `<div class="info ${p.fac}" data-pi="${p.i}"><span class="life ${p.life<=4?'low':''}"><small>ライフ</small>${p.life}</span><span class="who">${pname(p.i)}</span>
+  const tg=!isMe&&hitTarget();
+  return `<div class="info ${p.fac}${tg?' tgt':''}" data-pi="${p.i}" ${tg?'data-act="hitplayer" role="button" aria-label="相手の本体を攻撃"':''}><span class="life ${p.life<=4?'low':''}"><small>ライフ</small>${p.life}</span>${isMe?'':`<span class="who">${pname(p.i)}</span>`}
     <span class="meta">${isMe?`<span>ソウル <b>${p.energy}</b></span>`:`<span>手札 <b>${p.hand.length}</b></span>`}
-    ${p.barrier?'<span class="tag on">バリア</span>':''}<span class="tag ${p.finUsed?'':'on'}">バースト${p.finUsed?'済':'可'}</span></span></div>`;
+    ${p.barrier?'<span class="tag on">バリア</span>':''}<span class="tag ${p.finUsed?'':'on'}">バースト${p.finUsed?'済':'可'}</span></span>${isMe?actionBtn():'<button class="menubtn" data-act="rules" aria-label="メニュー">☰</button>'}</div>`;
 }
 function boardHTML(){
   const p=vme(),o=vop();
@@ -1934,7 +2115,7 @@ function boardHTML(){
     ${chargeHTML(p,g(3,1,2))}${slotHTML(p,'me',1,g(3,3))}${pilesHTML(p,'me','grid-row:3;grid-column:4 / span 2;justify-content:center','dg')}
     ${slotHTML(p,'me',0,g(4,2))}${pzoneHTML(p,'me',g(4,3))}${slotHTML(p,'me',2,g(4,4))}
   </div>
-  <div class="mid" data-act="showlog" role="button" tabindex="0" aria-label="対戦ログを見る"><span class="logopen">ログ</span>${G.log.slice(-2).map(l=>`<div>${fmtLog(l)}</div>`).join('')}</div>`;
+  ${(()=>{const h=selHint();return h?`<div class="mid sel">${h}</div>`:'';})()||`<div class="mid${NET.active?' online':''}" data-act="showlog" role="button" tabindex="0" aria-label="対戦ログを見る"><span class="logopen">ログ</span>${NET.active?'<button class="stamppill" data-act="stamp-open" aria-label="スタンプを送る">💬 スタンプ</button>':''}${G.log.slice(-2).map(l=>`<div>${fmtLog(l)}</div>`).join('')}</div>`}`;
 }
 function panelHTML(){
   const p=vme(),ph=G.phase;
@@ -1950,13 +2131,6 @@ function panelHTML(){
     const c=C[vop().buddyId];
     return `<div class="panel"><div class="txt"><b>相手のパートナー：${esc(c.name)}</b>　攻${c.atk} 体${c.def} 打${c.hit}<br>${esc(c.text||'')}</div>
       <div class="btns"><button class="btn sub" data-act="cancel">閉じる</button></div></div>`;
-  }
-  if(ph==='charge'){
-    if(sel&&sel.kind==='hand'){const c=C[p.hand[sel.idx]];
-      return `<div class="panel"><div class="txt"><b>${esc(c.name)}</b>を裏向きでチャージゾーンに置く？</div>
-        <div class="btns"><button class="btn sub" data-act="cancel">戻る</button><button class="btn go" data-act="charge">チャージする</button></div></div>`;}
-    return `<div class="panel"><div class="txt"><b>チャージフェーズ</b><br>手札を1枚選んでチャージ（チャージゾーンへドラッグでもOK。チャージの枚数＝毎ターンのソウル）</div>
-      <div class="btns"><button class="btn sub" data-act="nocharge">しない</button></div></div>`;
   }
   if(sel&&sel.kind==='move'){
     return `<div class="panel"><div class="txt"><b>${esc(C[p.field[sel.lane].id].name)}を移動</b><br>移動先（光っている空きマス）をタップ、またはそこへドラッグ</div>
@@ -1988,10 +2162,13 @@ function panelHTML(){
   if(sel&&(sel.kind==='hand'||sel.kind==='buddy')){
     const c=selCard(),why=whyNot(c,sel.kind==='buddy');
     const hint=why||(needsTarget(c)?(c.type==='monster'?'出すマス（光っている空きマス）をタップ、またはそこへドラッグ':'対象（光っているマス）をタップ、またはそこへドラッグ'):'「使う」で発動');
-    return `<div class="panel"><div class="txt"><b>${esc(c.name)}</b>（コスト${c.cost}）<br>${esc(hint)}</div>
-      <div class="btns"><button class="btn sub" data-act="cancel">戻る</button>${!why&&!needsTarget(c)?'<button class="btn go" data-act="use">使う</button>':''}</div></div>`;
+    const canCh=sel.kind==='hand'&&ph==='charge';
+    return `<div class="panel"><div class="txt"><b>${esc(c.name)}</b>（コスト${c.cost}）<br>${esc(hint)}${canCh?'<br><span class="dm">チャージゾーンに置くなら「チャージ」</span>':''}</div>
+      <div class="btns"><button class="btn sub" data-act="cancel">戻る</button>${canCh?'<button class="btn" data-act="charge">チャージ</button>':''}${!why&&!needsTarget(c)?'<button class="btn go" data-act="use">使う</button>':''}</div></div>`;
   }
-  if(ph==='main')return `<div class="panel"><div class="txt"><b>メインフェーズ</b><br>手札やパートナーをタップ、または場へドラッグしてカードを使う</div>
+  if(ph==='charge')return `<div class="panel"><div class="txt"><b>チャージフェーズ</b>　ソウル${p.energy}<br>手札を1枚チャージ（タップかドラッグ）</div>
+    <div class="btns"><button class="btn sub" data-act="rules">ルール</button><button class="btn" data-act="to-attack">アタックへ</button></div></div>`;
+  if(ph==='main')return `<div class="panel"><div class="txt"><b>メインフェーズ</b>　ソウル${p.energy}<br>手札やパートナーをタップ、または場へドラッグしてカードを使う</div>
     <div class="btns"><button class="btn sub" data-act="rules">ルール</button><button class="btn" data-act="to-attack">アタックへ</button></div></div>`;
   return `<div class="panel"><div class="txt"><b>アタックフェーズ</b><br>緑に光るモンスターをタップ、または敵や相手のライフへドラッグして攻撃</div>
     <div class="btns"><button class="btn sub" data-act="rules">ルール</button><button class="btn" data-act="end">ターン終了</button></div></div>`;
@@ -1999,25 +2176,34 @@ function panelHTML(){
 function handHTML(){
   const p=vme();
   return `<div class="hand">${p.hand.map((id,i)=>{const c=C[id];
-    const cls=(G.phase==='main'&&!cpuNow()&&!netWait()&&whyNot(c,false)?'cant':'')+(sel&&sel.kind==='hand'&&sel.idx===i?' sel':'');
+    const cls=(actPhase()&&!cpuNow()&&!netWait()&&whyNot(c,false)?'cant':'')+(sel&&sel.kind==='hand'&&sel.idx===i?' sel':'');
     return cardUI(c,{cls,attrs:`data-act="hand" data-idx="${i}"`});}).join('')||'<span class="handlabel">手札はありません</span>'}</div>`;
 }
 function dockHTML(){
-  return `${coachHTML()}${NET.oppLeft?'<div class="panel"><div class="txt"><b>相手が部屋から出ました</b></div><div class="btns"><button class="btn" data-act="go-title">タイトルへ</button></div></div>':''}${infoHTML(vme(),true)}<div class="phases">${PHASES.map(([k,l])=>`<span class="${G.phase===k?'now':''}">${l}</span>`).join('')}</div>${panelHTML()}${handHTML()}`;
+  return `${coachHTML()}${NET.oppLeft?'<div class="panel"><div class="txt"><b>相手が部屋から出ました</b></div><div class="btns"><button class="btn" data-act="go-title">タイトルへ</button></div></div>':''}${infoHTML(vme(),true)}${handHTML()}`;
 }
 const RULES=`<div class="rules">
 <h3>ターンの流れ</h3><ul>
 <li>ドロー：カードを1枚引く（先攻の1ターン目は引かない）</li>
-<li>チャージ：手札を1枚、裏向きでチャージゾーンに置く（しなくてもいい）</li>
-<li>メイン：カードを使う。ソウルはチャージゾーンの枚数ぶん毎ターン使える</li>
+<li>チャージ：手札を1枚、裏向きでチャージゾーンに置ける（しなくてもいい）。置くとメインへ進む。チャージせずにカードを使う・移動すると、そのままメインへ進む</li>
+<li>メイン：カードを使う。ソウルはチャージゾーンの枚数ぶん、毎ターン使える</li>
 <li>アタック：モンスターで攻撃する</li>
 <li>エンド：ターン終了時の処理をしてターンを終わる</li></ul>
+<h3>操作</h3><ul>
+<li>「アタックへ ▶」「ターン終了 ▶」は自分のライフ表示の右。メニュー☰は相手のライフ表示の右</li>
+<li>チャージ：手札をタップ → 緑に光ったチャージゾーンをタップ</li>
+<li>カードを使う：手札（パートナー）をタップ → 光っているマスや対象をタップ。対象のない呪文・ソウルバーストは、盤面の下の行の「使う」</li>
+<li>攻撃：緑に光るモンスターをタップ → 敵をタップ。本体を狙えるときは相手のライフ表示が光るので、そこをタップ</li>
+<li>連携：攻撃するモンスターを選んで、ほかの味方をタップ（3体まで）→ 敵か相手のライフ表示をタップ</li>
+<li>移動：移動持ちのモンスターをタップ → 光っている空きマスをタップ</li>
+<li>どの操作もドラッグ＆ドロップでできる。選ぶのをやめるときは、もう一度タップか「✕」</li>
+<li>カードを長押しすると拡大表示。盤面の下の行をタップすると対戦ログ、墓地をタップするとカードの一覧</li>
+<li>チャージ忘れや攻撃し忘れのときは確認が出る（メニューの「確認」でオン/オフ）</li></ul>
 <h3>基本</h3><ul>
-<li>カードはタップでも、ドラッグ＆ドロップでも動かせる（手札→場・チャージゾーン、モンスター→敵・相手のライフ・空きマス）</li>
 <li>ライフ10、デッキ30枚、手札5枚でスタート</li>
 <li>場はレフト・センター・ライト。攻撃先は相手の好きなモンスターを選べる</li>
 <li>相手の本体を攻撃できるのは、相手のセンターが空いているときだけ（打撃ぶんライフにダメージ）</li>
-<li>例外：速攻か移動を持つモンスターは、1体で攻撃するとき、正面が空いていれば本体を攻撃できる</li>
+<li>例外：速攻か移動を持つモンスターは、1体で攻撃するとき、自分の正面が空いていれば本体を攻撃できる</li>
 <li>連携攻撃：2〜3体で同時に攻撃して攻撃力を合計できる。相手のどのモンスターでも狙える。センターが空いていれば本体も狙え、打撃の合計がダメージになる</li>
 <li>攻撃力が相手の体力以上なら破壊。攻撃した側は傷つかない</li>
 <li>出したターンは攻撃できない（速攻は例外）。攻撃は1体につき1ターン1回（2回攻撃・3回攻撃は例外）</li>
@@ -2028,15 +2214,14 @@ const RULES=`<div class="rules">
 <li>そのカードのコストで場に呼べる。初めて呼んだときライフ+1</li>
 <li>破壊されると墓地へ送られ、もう呼べない（手札に戻されたときはパートナーゾーンへ戻る）</li></ul>
 <h3>ソウルバースト</h3><ul><li>ライフ4以下のとき、1ゲームに1回だけ使える大技</li></ul>
-<h3>デッキ作り</h3><ul><li>1つの陣営のカードだけで30枚。同じカードは3枚まで</li></ul>
+<h3>デッキ作り</h3><ul><li>1つの陣営のカードだけで30枚。同じカードは3枚まで。持っている枚数まで入れられる</li></ul>
 <h3>能力の意味</h3><ul>
-<li>速攻：出したターンから攻撃できる</li>
+<li>速攻：出したターンから攻撃できる。正面が空いていれば、相手のセンターがいても本体を攻撃できる</li>
+<li>移動：1ターン1回、空いているマスに移動できる（出したターンもOK）。正面が空いていれば、相手のセンターがいても本体を攻撃できる</li>
 <li>幻影：1回だけ破壊されない</li>
 <li>封印：正面の敵モンスターは攻撃できない</li>
-<li>2回攻撃：1ターンに2回攻撃できる</li>
+<li>2回攻撃・3回攻撃：1ターンに2回・3回攻撃できる</li>
 <li>貫通：敵を破壊したとき、打撃ぶん相手ライフにもダメージ</li>
-<li>移動：メインフェーズに1ターン1回、空いているマスに移動できる（出したターンもOK）</li>
-<li>3回攻撃：1ターンに3回攻撃できる</li>
 <li>加護：相手の呪文や効果で破壊されず、相手の呪文の対象にもならない（攻撃では破壊できる）</li>
 <li>共鳴：自分のパートナーが場にいると強くなる</li>
 <li>自分のターンのはじめに：毎ターンのはじめに効果が発動する</li></ul></div>`;
@@ -2089,6 +2274,7 @@ function decksHTML(){
   ${myDecks().map(d=>{const err=deckError(d);return `<div class="box deck ${d.fac}">
     <span class="dn">${esc(d.name)}</span>
     <span class="dm">${FAC[d.fac]}　${deckCount(d)}枚　パートナー：${d.partner&&C[d.partner]?esc(C[d.partner].name):'未設定'}${err?'　（未完成）':''}</span>
+    ${(()=>{const r=SAVE.deckStats[d.id];return r&&r[0]+r[1]?`<span class="dstat">このデッキの戦績：${r[0]}勝 ${r[1]}敗（勝率${Math.round(r[0]*100/(r[0]+r[1]))}%）</span>`:'';})()}
     ${codeShow===d.id?`<div class="codebox"><input type="text" readonly value="${esc(deckCode(d))}" onclick="this.select()"><button class="btn go" data-act="code-copy" data-code="${esc(deckCode(d))}">コピー</button></div>`:''}
     <div class="btns" style="justify-content:flex-start"><button class="btn sub" data-act="code-show" data-id="${esc(d.id)}">コード</button>${d.starter?`<button class="btn sub" data-act="copy-deck" data-id="${d.id}">コピーして編集</button>`
       :`<button class="btn sub" data-act="edit-deck" data-id="${esc(d.id)}">編集</button><button class="btn sub" data-act="copy-deck" data-id="${esc(d.id)}">コピー</button>
@@ -2109,6 +2295,8 @@ function editHTML(){
   <label class="fld"><b>パートナー</b><select data-act="partner"><option value="">（デッキのモンスターから選ぶ）</option>
     ${mons.map(c=>`<option value="${c.id}" ${d.partner===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></label>
   <div class="chips">${[['all','すべて'],['in','デッキ内'],['monster','モンスター'],['spell','呪文'],['finisher','バースト']].map(([k,l])=>`<button class="chip" aria-pressed="${edFilter===k}" data-act="filter" data-f="${k}">${l}</button>`).join('')}</div>
+  ${curveHTML(d)}
+  <div class="autorow"><button class="btn" data-act="auto-fill" ${n>=DECK_SIZE?'disabled':''}>残りをおまかせで埋める</button><button class="btn sub" data-act="auto-all">全部おまかせで組む</button></div>
   <div class="chips">${SORTS.map(([k,l])=>`<button class="chip" aria-pressed="${cardSort===k}" data-act="csort" data-k="${k}">${l}</button>`).join('')}</div>
   <div class="cgrid">${sortCards(pool).map(c=>{const k=d.cards[c.id]||0,mx=Math.min(3,owned(c.id));return `<div class="cgcell${k?' in':''}">
     ${cardUI(c,{attrs:`data-act="zoom" data-id="${c.id}" aria-label="${esc(c.name)}を大きく見る"`,partner:d.partner===c.id})}
@@ -2196,8 +2384,8 @@ function render(){
       <button class="btn sub" data-act="quit">対戦をやめる</button></div></div>`;
     return;
   }
-  ov.innerHTML=showLog?logOv():rulesOv();
-  app.innerHTML=`<div class="board">${boardHTML()}</div><div class="dock">${dockHTML()}</div>`;
+  ov.innerHTML=showLog?logOv():(ZOOM?zoomOv():(CONF?confOv():(sel&&sel.kind==='grave'?graveOv():rulesOv())));
+  app.innerHTML=`<div class="board">${boardHTML()}</div><div class="dock">${dockHTML()}</div>${stampHTML()}`;
   if(showLog){const ls=ov.querySelector('.logscroll');if(ls)ls.scrollTop=ls.scrollHeight;}
   flushFx();
 }
@@ -2215,6 +2403,15 @@ document.addEventListener('click',e=>{
   if(a==='snd-se'){SND.set.se=!SND.set.se;sndSave();render();if(SND.set.se)sfx('tap');return;}
   if(a==='rules'){showRules=!showRules;render();return;}
   if(a==='showlog'){if(G){showLog=true;showRules=false;render();}return;}
+  if(a==='grave'&&G&&scr==='game'){sel={kind:'grave',side:el.dataset.side};render();return;}
+  if(a==='cancel'&&G&&scr==='game'&&sel&&sel.kind==='grave'){sel=null;render();return;}
+  if(a==='conf-no'){CONF=null;sel=null;render();return;}
+  if(a==='conf-off'){OPT.confirm=false;optSave();const c=CONF,x=c&&c.act;CONF=null;if(x)confRun(x,c);else render();return;}
+  if(a==='conf-yes'){const c=CONF,x=c&&c.act;CONF=null;if(x)confRun(x,c);else render();return;}
+  if(a==='opt-confirm'){OPT.confirm=!OPT.confirm;optSave();render();return;}
+  if(a==='stamp-open'){STAMP_OPEN=!STAMP_OPEN;render();return;}
+  if(a==='stamp'){sendStamp(+el.dataset.i);return;}
+  if(a==='mis-reroll'){ensureDaily();const d=SAVE.daily,id=el.dataset.id;if(!d.rerolled&&d.ids.includes(id)&&!d.claimed[id]){const c=MISSIONS.map(m=>m.id).filter(x=>!d.ids.includes(x)&&x!=='online1'&&missionOK(x));if(c.length){const nw=c[Math.floor(Math.random()*c.length)];d.ids[d.ids.indexOf(id)]=nw;delete d.prog[id];d.rerolled=true;storeSave();}}render();return;}
   if(a==='closelog'){showLog=false;render();return;}
   if(a==='go-title'){netLeave();scr='title';G=null;showRules=false;showLog=false;render();return;}
   if(a==='go-online'){scr='online';if(!hasClaudeAPI()&&!ROOM)initRoom();render();return;}
@@ -2272,6 +2469,7 @@ document.addEventListener('click',e=>{
   if(a==='del-deck'){MY=MY.filter(d=>d.id!==el.dataset.id);saveDecks(MY);delId=null;render();return;}
   if(a==='filter'){edFilter=el.dataset.f;render();return;}
   if(a==='csort'){cardSort=el.dataset.k;render();return;}
+  if(a==='auto-fill'||a==='auto-all'){if(!ED)return;const r=autoFill(a==='auto-all'?{...ED,cards:{},partner:''}:ED,owned,DECK_SIZE);ED.cards=r.cards;ED.partner=r.partner;const n=deckCount(ED);saveMsg=n>=DECK_SIZE?'おまかせで組みました。気になるカードは入れ替えてください':`持っているカードが足りず、${n}枚までしか組めませんでした`;sfx('pack');render();return;}
   if(a==='colshow'){colShow=el.dataset.k;render();return;}
   if(a==='zoom'){ZOOM={id:el.dataset.id};sfx('tap');render();return;}
   if(a==='zoom-close'){ZOOM=null;render();return;}
@@ -2312,25 +2510,21 @@ document.addEventListener('click',e=>{
   if(a==='begin'){startTurn();return;}
   if(G.over||G.passing||cpuNow()||netWait())return;
   if(a==='cancel'){sel=null;render();return;}
-  if(a==='grave'){sel={kind:'grave',side:el.dataset.side};render();return;}
-  if(a==='pinfo'){sel={kind:'pinfo'};render();return;}
+  if(a==='pinfo'){const o=vop();ZOOM={id:o.buddyId};render();return;}
+  if(a==='hitplayer'){if(hitTarget())attackAt(sel.kind==='link'?sel.lanes:[sel.lane],'player');return;}
   if(a==='hand'){const i=+el.dataset.idx;sel=(sel&&sel.kind==='hand'&&sel.idx===i)?null:{kind:'hand',idx:i};render();return;}
-  if(G.phase==='charge'){
-    if(a==='charge'&&sel&&sel.kind==='hand'){chargeCard(sel.idx);return;}
-    if(a==='nocharge'){log('チャージしなかった');toMain();return;}
-    return;
-  }
-  if(a==='to-attack'){toAttack();return;}
-  if(a==='end'){endTurn();return;}
-  if(a==='buddy'){if(G.phase!=='main')return;sel=(sel&&sel.kind==='buddy')?null:{kind:'buddy'};render();return;}
-  if(a==='use'){useCard(null);return;}
+  if(a==='charge'){if(G.phase==='charge'&&sel&&sel.kind==='hand')chargeCard(sel.idx);return;}
+  if(a==='to-attack'){const w=warnFor('to-attack');if(w){CONF={msg:w,act:'to-attack'};render();return;}skipCharge();toAttack();return;}
+  if(a==='end'){const w=warnFor('end');if(w){CONF={msg:w,act:'end'};render();return;}skipCharge();endTurn();return;}
+  if(a==='buddy'){if(!actPhase())return;sel=(sel&&sel.kind==='buddy')?null:{kind:'buddy'};render();return;}
+  if(a==='use'){tryUse(null);return;}
   if(a==='atk-front'&&sel&&sel.kind==='unit'){attackAt([sel.lane],sel.lane);return;}
   if(a==='atk-player'&&sel){attackAt(sel.kind==='link'?sel.lanes:[sel.lane],'player');return;}
   if(a==='move'&&sel&&sel.kind==='unit'){sel={kind:'move',lane:sel.lane};render();return;}
   if(a==='link'&&sel&&sel.kind==='unit'){sel={kind:'link',lanes:[sel.lane]};render();return;}
   if(a==='slot'){
     const side=el.dataset.side,lane=+el.dataset.lane;
-    if(sel&&sel.kind==='move'){if(side==='me'&&!me().field[lane])moveUnit(sel.lane,lane);return;}
+    if(sel&&sel.kind==='move'){if(side==='me'&&!me().field[lane]){const f=sel.lane;tryMain(()=>moveUnit(f,lane));return;}if(side==='me'&&lane===sel.lane){sel=null;render();return;}}
     if(sel&&sel.kind==='link'){
       if(side==='me'){const p=me();
         if(sel.lanes.includes(lane)){sel.lanes=sel.lanes.filter(x=>x!==lane);if(!sel.lanes.length)sel=null;}
@@ -2339,9 +2533,12 @@ document.addEventListener('click',e=>{
       }else if(isTarget(side,lane))attackAt(sel.lanes,lane);
       return;
     }
-    if(sel&&sel.kind==='unit'){if(isTarget(side,lane)){attackAt([sel.lane],lane);return;}}
-    else if(isTarget(side,lane)){useCard({side,lane});return;}
+    if(sel&&sel.kind==='unit'){if(isTarget(side,lane)){attackAt([sel.lane],lane);return;}
+      if(sel.side==='me'&&side==='me'&&lane===sel.lane){sel=null;render();return;}
+      const mp=me();if(G.phase==='attack'&&sel.side==='me'&&side==='me'&&canAttack(mp.field[sel.lane],mp,sel.lane)&&canAttack(mp.field[lane],mp,lane)){sel={kind:'link',lanes:[sel.lane,lane]};render();return;}}
+    else if(isTarget(side,lane)){tryUse({side,lane});return;}
     const p=side==='me'?me():op();
+    if(side==='me'&&p.field[lane]&&actPhase()&&canMove(p.field[lane],p)){sel=(sel&&sel.kind==='move'&&sel.lane===lane)?null:{kind:'move',lane};render();return;}
     if(p.field[lane]){sel={kind:'unit',side,lane};render();}
   }
 });
@@ -2351,11 +2548,11 @@ function dragReady(){return scr==='game'&&G&&!G.over&&!G.passing&&!cpuNow()&&!ne
 /* つかんだものに合わせて、タップしたときと同じ選択状態にする */
 function dragSelect(src){
   const p=vme();
-  if(src.kind==='hand'){if(G.phase!=='charge'&&G.phase!=='main')return false;sel={kind:'hand',idx:src.idx};return true;}
-  if(src.kind==='buddy'){if(G.phase!=='main'||p.buddy!=='zone')return false;sel={kind:'buddy'};return true;}
+  if(src.kind==='hand'){if(!actPhase())return false;sel={kind:'hand',idx:src.idx};return true;}
+  if(src.kind==='buddy'){if(!actPhase()||p.buddy!=='zone')return false;sel={kind:'buddy'};return true;}
   if(src.kind==='unit'){const u=p.field[src.lane];if(!u)return false;
     if(G.phase==='attack'&&canAttack(u,p,src.lane)){sel={kind:'unit',side:'me',lane:src.lane};return true;}
-    if(G.phase==='main'&&canMove(u,p)){sel={kind:'move',lane:src.lane};return true;}}
+    if(actPhase()&&canMove(u,p)){sel={kind:'move',lane:src.lane};return true;}}
   return false;
 }
 function dragCardId(src){const p=vme();return src.kind==='hand'?p.hand[src.idx]:(src.kind==='buddy'?p.buddyId:(p.field[src.lane]||{}).id);}
@@ -2364,20 +2561,20 @@ function dropAction(x,y){
   const el=document.elementFromPoint(x,y);if(!el||!sel)return null;
   const slot=el.closest('.slot[data-side]');
   if(slot){const side=slot.dataset.side,lane=+slot.dataset.lane;if(isTarget(side,lane))return {el:slot,go:()=>{
-      if(sel.kind==='move')moveUnit(sel.lane,lane);else if(sel.kind==='unit')attackAt([sel.lane],lane);else useCard({side,lane});}};}
+      if(sel.kind==='move'){const f=sel.lane;tryMain(()=>moveUnit(f,lane));}else if(sel.kind==='unit')attackAt([sel.lane],lane);else tryUse({side,lane});}};}
   if(G.phase==='charge'&&sel.kind==='hand'){const ch=el.closest('.charge[data-pi]');
-    if(ch&&+ch.dataset.pi===vme().i)return {el:ch,go:()=>chargeCard(sel.idx)};return null;}
+    if(ch&&+ch.dataset.pi===vme().i)return {el:ch,go:()=>chargeCard(sel.idx)};}
   if(sel.kind==='unit'){const inf=el.closest('.info[data-pi]');
     if(inf&&+inf.dataset.pi===vop().i&&canHitPlayer([sel.lane]))return {el:inf,go:()=>attackAt([sel.lane],'player')};return null;}
   if(sel.kind==='hand'||sel.kind==='buddy'){const c=selCard();
-    if(c&&!whyNot(c,sel.kind==='buddy')&&!needsTarget(c)){const area=el.closest('.grid,.info,.backs');if(area)return {el:area,go:()=>useCard(null)};}}
+    if(c&&!whyNot(c,sel.kind==='buddy')&&!needsTarget(c)){const area=el.closest('.grid,.info,.backs');if(area)return {el:area,go:()=>tryUse(null)};}}
   return null;
 }
 function markDropZones(){
   if(!sel)return;
-  if(G.phase==='charge'){const ch=document.querySelector(`.charge[data-pi="${vme().i}"]`);if(ch)ch.classList.add('droptgt');}
+  if(G.phase==='charge'&&sel.kind==='hand'){const ch=document.querySelector(`.charge[data-pi="${vme().i}"]`);if(ch)ch.classList.add('droptgt');}
   if(sel.kind==='unit'&&canHitPlayer([sel.lane])){const inf=document.querySelector(`.info[data-pi="${vop().i}"]`);if(inf)inf.classList.add('droptgt');}
-  if(sel.kind==='hand'||sel.kind==='buddy'){const c=selCard();if(c&&G.phase==='main'&&!whyNot(c,sel.kind==='buddy')&&!needsTarget(c)){const g=document.querySelector('.grid');if(g)g.classList.add('droptgt');}}
+  if(sel.kind==='hand'||sel.kind==='buddy'){const c=selCard();if(c&&actPhase()&&!whyNot(c,sel.kind==='buddy')&&!needsTarget(c)){const g=document.querySelector('.grid');if(g)g.classList.add('droptgt');}}
 }
 function dragBegin(e){
   const id=dragCardId(DRAG.src);if(!id||!dragSelect(DRAG.src))return false;
