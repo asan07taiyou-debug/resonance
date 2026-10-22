@@ -230,6 +230,26 @@ h1,h2{font-family:"Dela Gothic One","Hiragino Sans","Noto Sans JP",sans-serif;fo
 @media (max-height:500px){.land .pzone .lbl{display:none}.land .mid{font-size:10px}}
 @media (min-height:640px){.land .lhand .hand .cardui .ct,.land .lhand .hand .cardui .cx{display:block}.land .lhand .hand .cardui .ci{flex:none;height:42%}.land .lhand .hand .cardui .cx{font-size:10px;line-height:1.3;overflow:hidden;flex:1}}
 .mid.auto{border:1px dashed var(--gold);border-radius:10px}
+
+/* 背景のパートナー（v0.59） */
+.bbg{position:fixed;inset:0;z-index:0;pointer-events:none;background-size:cover;background-position:center 30%;opacity:0;transition:opacity .7s ease;filter:blur(2px) saturate(1.1);transform:scale(1.04)}
+.bbg.on{opacity:.16}
+:root:not([data-theme="light"]) .bbg.on{opacity:.24}
+:root[data-theme="dark"] .bbg.on{opacity:.24}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .bbg.on{opacity:.14}}
+#app,#ov{position:relative;z-index:1}
+/* 押したカードを大きく・色をつける（v0.59） */
+.game .cardui{transition:transform .14s ease,box-shadow .14s ease}
+.game .cardui:active{transform:scale(1.04)}
+.cardui.sel{box-shadow:0 0 0 3px var(--gold),0 0 22px 6px color-mix(in srgb,var(--gold) 80%,transparent)!important;z-index:4;opacity:1!important;border-color:var(--gold)!important}
+.cardui.sel::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,color-mix(in srgb,var(--gold) 26%,transparent),transparent 55%);pointer-events:none}
+.hand .cardui.sel{transform:translateY(-8px) scale(1.07)}
+.slot .cardui.sel,.pzone.sel .cardui{transform:scale(1.1)}
+.pzone.sel .cardui{box-shadow:0 0 0 3px var(--gold),0 0 18px 4px color-mix(in srgb,var(--gold) 70%,transparent)}
+.hand{padding-top:18px}
+.slot,.pzone{position:relative}
+.slot:has(.sel),.pzone.sel{z-index:4}
+@media (prefers-reduced-motion: reduce){.game .cardui,.hand .cardui.sel,.slot .cardui.sel,.pzone.sel .cardui{transform:none;transition:none}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:7px 10px;display:flex;gap:10px;align-items:center;min-height:50px}
 .panel .txt{flex:1;font-size:12px;line-height:1.4}
 .panel .txt b{font-size:13px}
@@ -857,7 +877,7 @@ function deckError(d,free){
 }
 
 /* ===== 状態 ===== */
-const APP_VER='0.58';
+const APP_VER='0.59';
 /* ===== ストーリーモード（v0.45） ===== */
 const STORY_PRO=[
  ['ナレーション','はるか昔、ある文明が、強大な存在の「魂」をカードに封じ込めた。'],
@@ -1331,9 +1351,21 @@ function scheduleAutoEnd(){
   AUTO_T=setTimeout(()=>{AUTO_T=null;if(scr==='game'&&turnKey()===k&&autoWillEnd()){log('することがないので、自動でターン終了');skipCharge();sel=null;endTurn();}},AUTO_MS);
 }
 const autoLine=()=>`<div class="mid sel auto"><b>することがありません</b><span>まもなく自動でターン終了します</span><button class="mbtn sub" data-act="auto-stop">止める</button></div>`;
+
+/* ===== バトル中の背景：そのターンのプレイヤーのパートナー（v0.59） ===== */
+let BBG=null,BBG_ID=null,BBG_I=0;
+function battleBg(id){
+  if(typeof document.createElement!=='function')return;
+  if(!BBG){BBG=[0,1].map(()=>{const d=document.createElement('div');d.className='bbg';d.setAttribute('aria-hidden','true');document.body.insertBefore(d,document.body.firstChild);return d;});}
+  if(id===BBG_ID)return;BBG_ID=id;
+  const cur=BBG[BBG_I],nxt=BBG[1-BBG_I];
+  if(id&&ART[id]){nxt.style.backgroundImage=`url(${ART[id]})`;nxt.classList.add('on');}else nxt.classList.remove('on');
+  cur.classList.remove('on');BBG_I=1-BBG_I;
+}
 /* ===== お知らせ（パッチノート）v0.44 =====
    遊ぶ人向けの更新内容。新しいものを先頭に足す。important:true は更新後の起動時に自動で表示する */
 const NEWS=[
+ {v:'0.59',date:'2026-10-22',title:'選んだカードが分かりやすく・背景にパートナー',items:['カードをタップして選ぶと、少し大きくなって金色に光るようにしました（手札は少し上に浮きます）','対戦中の背景に、そのターンのプレイヤーのパートナーがうっすら表示されます。ターンが変わると切りかわります']},
  {v:'0.58',date:'2026-10-22',title:'自動ターン終了',items:['使えるカードも、攻撃や移動ができるモンスターもないときは、少し待ってから自動でターンが終わります','盤面の下の行に「まもなく自動でターン終了します」と出ている間に「止める」を押すと、そのターンは自動で終わりません','メニューの「自動ターン終了」でオン/オフを切りかえられます']},
  {v:'0.57',date:'2026-10-22',title:'横持ちに対応しました',items:['スマホを横にしたり、タブレット・パソコンで遊んだりすると、横長の画面用の配置になります（相手の場：自分の場＝4：6）','手札は下、チャージゾーンは左、ライフ・ソウル・「ターン終了」は右下のプレイヤー表示にあります']},
  {v:'0.56',date:'2026-10-22',title:'呪文を使ったときの演出',items:['呪文やソウルバーストを使うと、カードが画面の中央に大きく出てから、効果が出る場所（相手のライフ・対象のモンスターなど）へ吸いこまれるようにしました。CPUや相手が使ったときも出ます']},
@@ -2516,6 +2548,7 @@ function render(){
   if(NET.active&&scr==='game')netSync();
   const app=$('#app'),ov=$('#ov');
   if(scr!=='game'){
+    battleBg(null);
     if(scr==='title')checkLogin();
     if(ZOOM&&scr!=='col'&&scr!=='edit')ZOOM=null;
     app.className='page';ov.innerHTML=ZOOM?zoomOv():scr==='story'&&STV.talk?talkOv():(scr==='title'&&LOGIN_POP?loginOv():rulesOv());
@@ -2523,6 +2556,7 @@ function render(){
     return;
   }
   LAND_NOW=isLand();app.className='game'+(LAND_NOW?' land':'');
+  battleBg(G&&!G.over&&!G.passing?G.p[G.cur].buddyId:null);
   if(G.over){
     app.innerHTML='';
     if(showLog){ov.innerHTML=logOv();const ls=ov.querySelector('.logscroll');if(ls)ls.scrollTop=ls.scrollHeight;return;}
