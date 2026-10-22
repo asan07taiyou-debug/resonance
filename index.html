@@ -273,6 +273,13 @@ select,input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px so
 .bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
 .bar span{display:block;height:100%;background:var(--gold)}
 .stat{display:flex;justify-content:space-between;font-size:13px;border-top:1px solid var(--line);padding-top:6px}
+
+.news .nh{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.news .nv{font-family:"Dela Gothic One",sans-serif;font-size:15px}
+.news .nd{font-size:12px;color:var(--muted)}
+.news .ntag{font-size:11px;font-weight:700;color:#fff;background:var(--danger);border-radius:99px;padding:1px 8px}
+.news .ntag.imp{background:var(--gold)}
+.news ul{margin:0;padding-left:1.2em;font-size:14px;line-height:1.6}
 .badge2{display:inline-block;margin-left:6px;min-width:18px;padding:0 5px;border-radius:99px;background:var(--danger);color:#fff;font-size:11px}
 .codebox{display:flex;gap:6px}.codebox input{flex:1;font-size:12px;padding:8px}
 .savecode{width:100%;min-height:96px;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;color:inherit;word-break:break-all;resize:vertical;box-sizing:border-box}
@@ -677,7 +684,35 @@ function deckError(d,free){
 }
 
 /* ===== 状態 ===== */
-const APP_VER='0.42';
+const APP_VER='0.44';
+/* ===== お知らせ（パッチノート）v0.44 =====
+   遊ぶ人向けの更新内容。新しいものを先頭に足す。important:true は更新後の起動時に自動で表示する */
+const NEWS=[
+ {v:'0.44',date:'2026-10-22',title:'お知らせを見られるようになりました',items:['タイトルの「お知らせ」から、ゲームの更新内容を見られます','新しいお知らせがあると「NEW」が付きます']},
+ {v:'0.43',date:'2026-10-22',important:true,title:'速攻・移動のモンスターは本体を狙いやすく',items:['速攻か移動を持つモンスターは、自分の正面が空いていれば、相手のセンターにモンスターがいても本体を攻撃できます（1体で攻撃するとき）','連携攻撃で本体を狙えるのは、相手のセンターが空いているときだけです']},
+ {v:'0.42',date:'2026-10-22',important:true,title:'本体への攻撃ルールが変わりました／対戦ログ',items:['相手の本体を攻撃できるのは、相手のセンターが空いているときだけになりました（センターが「門」になります。例外は0.43を見てください）','対戦中、画面下のログをタップすると、その対戦のログを全部見られます。対戦後の画面からも見られます']},
+ {v:'0.41',date:'2026-10-22',title:'ダメージ演出がパワーアップ',items:['ダメージで画面が揺れ、火花や大きな数字が出るようになりました。大ダメージはさらに派手に','モンスターへの攻撃や破壊にも、斬撃や爆発の演出が付きました']},
+ {v:'0.40',date:'2026-10-22',title:'ドラッグ＆ドロップで操作できます',items:['カードをドラッグして、チャージ・召喚・呪文・移動・攻撃ができます（今までのタップ操作も使えます）','モンスターを相手のライフへドラッグすると、本体に攻撃します']},
+ {v:'0.39',date:'2026-10-22',title:'データの引き継ぎコード',items:['タイトルの「データの引き継ぎ」で、コイン・カード・デッキなどを1つのコードにまとめられます','機種変更のときや、データが消えたときに、別の端末で続きから遊べます。ときどきコードを作って保存しておきましょう']},
+ {v:'0.38',date:'2026-10-22',title:'ミッションと起動まわりの改善',items:['持っていない陣営で勝つミッションは出ないようにしました','電波が弱いときでも、すぐタイトル画面が出るようにしました']},
+ {v:'0.37',date:'2026-10-22',title:'マジックのスターターデッキを強化',items:['マジックのスターターに「光の妖精」「癒しの光」「時の魔女クロノア」が入りました','すでにマジックのスターターで遊んでいる人には、この3種類が2枚ずつ届いています']},
+ {v:'0.36',date:'2026-10-22',title:'呪文の不具合を修正',items:['「逆鱗」「再起動」「時の加速」「双子の呪文」の「もう一度攻撃できる」効果が、正しく働くようになりました']},
+];
+const NEWS_KEY='resonance.news.seen';
+function newsSeen(){try{return localStorage.getItem(NEWS_KEY)||'';}catch(e){return '';}}
+function markNewsSeen(){try{localStorage.setItem(NEWS_KEY,NEWS[0].v);}catch(e){}}
+const verNum=v=>v.split('.').reduce((a,x)=>a*1000+(+x||0),0);
+const newsUnread=()=>NEWS.filter(n=>verNum(n.v)>verNum(newsSeen()||'0'));
+function newsHTML(){
+  const unread=new Set(newsUnread().map(n=>n.v));
+  return `<div class="top"><button class="btn sub" data-act="go-title">戻る</button><h2>お知らせ</h2></div>
+  ${NEWS.map(n=>`<div class="box stack news">
+    <div class="nh"><span class="nv">Ver. ${esc(n.v)}</span><span class="nd">${esc(n.date)}</span>${n.important?'<span class="ntag imp">ルール変更</span>':''}${unread.has(n.v)?'<span class="ntag">NEW</span>':''}</div>
+    <b>${esc(n.title)}</b><ul>${n.items.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')}
+  <button class="btn" data-act="go-title">タイトルへ</button>`;
+}
+function openNews(){scr='news';render();window.scrollTo(0,0);markNewsSeen();}
+
 let scr='splash', G=null, sel=null, showRules=false, ED=null, delId=null, edFilter='all', saveMsg='';
 let setup={d:['st-dragon','st-machine'],mode:'cpu',level:'normal'};
 const LEVELS={easy:'かんたん',normal:'ふつう',hard:'むずかしい'};
@@ -876,8 +911,10 @@ function moveUnit(from,to){
   p.field[to]=u;p.field[from]=null;u.moved=true;
   log(`${C[u.id].name}が${LANE2[from]}から${LANE2[to]}へ移動`);sel=null;render();
 }
-/* 本体への攻撃は、相手のセンターが空いているときだけ（v0.42で変更。以前は正面が空いていてもOKだった） */
-function canHitPlayer(lanes){const o=op();return !o.field[1];}
+/* 本体への攻撃は、相手のセンターが空いているときだけ（v0.42）。
+   例外：速攻か移動を持つモンスターは、1体で攻撃するとき、正面が空いていれば本体を攻撃できる（v0.43） */
+const hitException=(u,o,l)=>!!(u&&!o.field[l]&&(C[u.id].rush||C[u.id].move));
+function canHitPlayer(lanes){const o=op();if(!o.field[1])return true;if(lanes.length!==1)return false;return hitException(me().field[lanes[0]],o,lanes[0]);}
 function attackAt(lanes,target){
   if(G.phase!=='attack')return;
   const p=me(),o=op();
@@ -1024,7 +1061,7 @@ let ROOM, NROOM=null;
 const freshNet=()=>({active:false,me:0,seq:0,lastJSON:'',stage:'idle',code:'',codeInput:'',err:'',oppPeer:null,oppDeck:null,oppLeft:false,peerCount:0,deckId:(NET&&NET.deckId)||'st-dragon'});
 let NET=null;NET=freshNet();
 /* 中継サーバー通信（MQTT）：Claudeの外で開いたとき用 */
-const NET_VER='v042';
+const NET_VER='v043';
 const BROKERS=[['wss://broker.emqx.io:8084/mqtt','1'],['wss://broker.hivemq.com:8884/mqtt','2'],['wss://test.mosquitto.org:8081','3']];
 function connectBroker(i,willTopic){return new Promise((res,rej)=>{
   if(i>=BROKERS.length){rej(new Error('no broker'));return;}
@@ -1420,7 +1457,7 @@ const TUT_PAGES=[
  {icon:'🔄',title:'ターンの流れ',body:'<b>ドロー</b>：1枚引く<br><b>チャージ</b>：手札を1枚、チャージゾーンに置ける<br><b>メイン</b>：カードを使う<br><b>アタック</b>：モンスターで攻撃<br><b>エンド</b>：ターン終了'},
  {icon:'⚡',title:'チャージとソウル',body:'カードを使うには<b>ソウル</b>が必要です。<br>ソウルは<b>チャージゾーンの枚数</b>ぶん、毎ターン使えます。<br>まずは毎ターン1枚ずつチャージしていくのが基本です。'},
  {icon:'🃏',title:'場とモンスター',body:'場は<b>レフト・センター・ライト</b>の3マス。<br>出したばかりのモンスターは、そのターンは攻撃できません（<b>速攻</b>は例外）。<br>カードの「攻」は攻撃力、「体」は体力、「打」は相手ライフへのダメージです。'},
- {icon:'⚔️',title:'攻撃',body:'攻撃したい<b>敵モンスターを選んで</b>攻撃。攻撃力が相手の体力以上なら破壊できます。<br>相手の<b>センターが空いている</b>ときだけ、相手の本体を直接攻撃できます。センターにモンスターがいるうちは、本体は狙えません。'},
+ {icon:'⚔️',title:'攻撃',body:'攻撃したい<b>敵モンスターを選んで</b>攻撃。攻撃力が相手の体力以上なら破壊できます。<br>相手の<b>センターが空いている</b>ときだけ、相手の本体を直接攻撃できます。<br>ただし<b>速攻</b>か<b>移動</b>を持つモンスターは、自分の正面が空いていれば本体を狙えます。'},
  {icon:'🤝',title:'連携攻撃',body:'2〜3体で<b>同時に攻撃</b>すると、攻撃力を合計できます。<br>1体では倒せない硬いモンスターも、みんなで倒しましょう。'},
  {icon:'✨',title:'パートナーとソウルバースト',body:'<b>パートナー</b>はいつでも呼べる相棒。初めて呼ぶとライフ+1。<br>ライフが<b>4以下</b>になると、1ゲームに1回だけ大技<b>ソウルバースト</b>が使えます。逆転のチャンス！'},
 ];
@@ -1463,7 +1500,7 @@ function coachTip(){
     if(p.life<=4&&!p.finUsed&&p.hand.some(id=>C[id].type==='finisher'))list.push(T('burst','ライフが4以下なので、ソウルバーストが使えます！逆転のチャンス！'));
   }
   if(G.phase==='attack'){
-    if(ready.length)list.push(T('attack','緑に光るモンスターをタップして、攻撃したい敵をタップ。相手のセンターが空いていれば「本体」も狙えます。'));
+    if(ready.length)list.push(T('attack','緑に光るモンスターをタップして、攻撃したい敵をタップ。相手のセンターが空いていれば「本体」も狙えます（速攻・移動持ちは、正面が空いていてもOK）。'));
     if(ready.length>=2&&o.field.some(Boolean))list.push(T('link','「連携」を使うと、2〜3体の攻撃力を合計できます。硬い敵はみんなで倒そう！'));
     if(ready.length&&!o.field[1])list.push(T('center','相手のセンターが空いています！どのモンスターでも本体を攻撃できます。'));
     if(!ready.length)list.push(T('end','攻撃できるモンスターがいなければ「ターン終了」で相手の番です。'));
@@ -1581,7 +1618,7 @@ function panelHTML(){
       else{
         const others=[0,1,2].some(l=>l!==sel.lane&&canAttack(pl.field[l],pl,l));
         hint=vop().field.some(Boolean)?'攻撃したい敵（光っているマス）をタップ、またはそこへドラッグ':'敵モンスターはいません';
-        if(canHitPlayer([sel.lane]))hint+='。センターが空いているので本体も狙える';
+        if(canHitPlayer([sel.lane]))hint+=!vop().field[1]?'。センターが空いているので本体も狙える':`。${C[u.id].rush?'速攻':'移動'}を持っていて正面が空いているので本体も狙える`;
         btns=(canHitPlayer([sel.lane])?'<button class="btn go" data-act="atk-player">本体</button>':'')+(others?'<button class="btn" data-act="link">連携</button>':'');
       }
     }
@@ -1619,7 +1656,8 @@ const RULES=`<div class="rules">
 <li>カードはタップでも、ドラッグ＆ドロップでも動かせる（手札→場・チャージゾーン、モンスター→敵・相手のライフ・空きマス）</li>
 <li>ライフ10、デッキ30枚、手札5枚でスタート</li>
 <li>場はレフト・センター・ライト。攻撃先は相手の好きなモンスターを選べる</li>
-<li>相手の本体を攻撃できるのは、相手のセンターが空いているときだけ（打撃ぶんライフにダメージ）。センターにモンスターがいると、正面が空いていても本体は攻撃できない</li>
+<li>相手の本体を攻撃できるのは、相手のセンターが空いているときだけ（打撃ぶんライフにダメージ）</li>
+<li>例外：速攻か移動を持つモンスターは、1体で攻撃するとき、正面が空いていれば本体を攻撃できる</li>
 <li>連携攻撃：2〜3体で同時に攻撃して攻撃力を合計できる。相手のどのモンスターでも狙える。センターが空いていれば本体も狙え、打撃の合計がダメージになる</li>
 <li>攻撃力が相手の体力以上なら破壊。攻撃した側は傷つかない</li>
 <li>出したターンは攻撃できない（速攻は例外）。攻撃は1体につき1ターン1回（2回攻撃・3回攻撃は例外）</li>
@@ -1661,6 +1699,7 @@ function titleHTML(){
     <button class="btn sub" data-act="go-mis">ミッション・戦績${missionReady()?`<span class="badge2">${missionReady()}</span>`:''}</button>
     <button class="btn sub" data-act="go-tut">あそびかた（チュートリアル）</button>
     <button class="btn sub" data-act="rules">ルールを見る</button>
+    <button class="btn sub" data-act="go-news">お知らせ${newsUnread().length?'<span class="badge2">NEW</span>':''}</button>
     <button class="btn sub" data-act="go-save">データの引き継ぎ</button>
   </div>
   <p class="coins">所持コイン <b>${SAVE.coins}</b></p>
@@ -1763,7 +1802,7 @@ function render(){
   const app=$('#app'),ov=$('#ov');
   if(scr!=='game'){
     app.className='page';ov.innerHTML=rulesOv();
-    app.innerHTML={title:titleHTML,setup:setupHTML,decks:decksHTML,newdeck:newDeckHTML,edit:editHTML,shop:shopHTML,col:colHTML,online:onlineHTML,pick:pickHTML,mis:missionHTML,tut:tutHTML,save:saveHTML}[scr]();
+    app.innerHTML={title:titleHTML,setup:setupHTML,decks:decksHTML,newdeck:newDeckHTML,edit:editHTML,shop:shopHTML,col:colHTML,online:onlineHTML,pick:pickHTML,mis:missionHTML,tut:tutHTML,save:saveHTML,news:newsHTML}[scr]();
     return;
   }
   app.className='game';
@@ -1822,6 +1861,7 @@ document.addEventListener('click',e=>{
   if(a==='go-col'){scr='col';render();window.scrollTo(0,0);return;}
   if(a==='go-mis'){scr='mis';render();window.scrollTo(0,0);return;}
   if(a==='go-save'){openSaveScreen();return;}
+  if(a==='go-news'){openNews();return;}
   if(a==='sv-copy'){const done=()=>{el.textContent='コピーしました';};try{navigator.clipboard.writeText(SV.code).then(done,()=>{el.textContent='長押しでコピー';});}catch(e){el.textContent='長押しでコピー';}return;}
   if(a==='sv-share'){try{navigator.share({title:'レゾナンス 引き継ぎコード',text:SV.code}).catch(()=>{});}catch(e){}return;}
   if(a==='sv-read'){SV.msg='読み込んでいます…';render();readSaveCode(SV.input).then(r=>{if(r.err){SV.msg=r.err;}else{SV.pending=r;SV.msg='';}if(scr==='save')render();});return;}
@@ -1840,7 +1880,7 @@ document.addEventListener('click',e=>{
     const d={id:'d'+Date.now().toString(36),name:`${FAC[r.deck.fac]}（コードから）`,...r.deck};MY.push(d);saveDecks(MY);codeIn='';
     const e2=deckError(d);codeMsg=e2?`追加しました。ただし未完成です：${e2}`:'追加しました！このデッキで対戦できます';render();return;}
   if(a==='buy'){buyPack();return;}
-  if(a==='pick-starter'){const d=STARTERS.find(x=>x.id===el.dataset.id);if(!d||SAVE.starter)return;SAVE.starter=d.id;SAVE.owned={...d.cards};storeSave();setup.d[0]=d.id;NET.deckId=d.id;tutPage=0;scr='tut';render();window.scrollTo(0,0);return;}
+  if(a==='pick-starter'){const d=STARTERS.find(x=>x.id===el.dataset.id);if(!d||SAVE.starter)return;markNewsSeen();SAVE.starter=d.id;SAVE.owned={...d.cards};storeSave();setup.d[0]=d.id;NET.deckId=d.id;tutPage=0;scr='tut';render();window.scrollTo(0,0);return;}
   if(a==='colfac'){colFac=el.dataset.f;render();return;}
   if(a==='new-deck'){scr='newdeck';render();return;}
   if(a==='make-deck'){openEditor({name:`${FAC[el.dataset.f]}デッキ`,fac:el.dataset.f,cards:{},partner:''},false);ED.id=null;return;}
@@ -1865,7 +1905,10 @@ document.addEventListener('click',e=>{
     if(!ok)alert('この端末に保存できませんでした。ページを閉じるとデッキは消えます。');
     return;
   }
-  if(a==='splash-go'){scr=SAVE.starter?'title':'pick';$('#ov').innerHTML='';sfx('turn');render();window.scrollTo(0,0);return;}
+  if(a==='splash-go'){$('#ov').innerHTML='';sfx('turn');
+    /* ルール変更など大事なお知らせが未読なら、起動時に一度だけ見せる */
+    if(SAVE.starter&&newsUnread().some(n=>n.important)){openNews();return;}
+    scr=SAVE.starter?'title':'pick';render();window.scrollTo(0,0);return;}
   if(a==='go-tut'){tutPage=0;scr='tut';render();window.scrollTo(0,0);return;}
   if(a==='tut-next'){tutPage=Math.min(TUT_PAGES.length-1,tutPage+1);render();return;}
   if(a==='tut-prev'){tutPage=Math.max(0,tutPage-1);render();return;}
