@@ -99,7 +99,12 @@ h1,h2{font-family:"Dela Gothic One","Hiragino Sans","Noto Sans JP",sans-serif;fo
 .pile b{font-family:"Dela Gothic One",sans-serif;font-size:15px;font-weight:400;color:inherit}
 .pile.deck b{color:#fff}
 .pile.grave b{color:var(--ink)}
-.mid{font-size:11px;color:var(--muted);line-height:1.35;min-height:30px;padding:0 4px}
+.mid{font-size:11px;color:var(--muted);line-height:1.35;min-height:30px;padding:0 4px;position:relative;cursor:pointer;padding-right:44px}
+.mid .logopen{position:absolute;right:2px;top:2px;font-size:10px;font-weight:700;color:var(--ink);border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:2px 8px}
+.logov{max-height:86vh;display:flex;flex-direction:column}
+.logscroll{overflow-y:auto;flex:1;min-height:120px;max-height:62vh;text-align:left;font-size:13px;line-height:1.55;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--table)}
+.logscroll .lt{margin-top:8px;padding-top:6px;border-top:1px dashed var(--line);font-weight:800;color:var(--ink)}
+.logscroll .lt:first-child{margin-top:0;border-top:0;padding-top:0}
 .mid div:last-child{color:var(--ink);font-weight:700}
 
 /* card UI */
@@ -219,6 +224,29 @@ select,input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px so
 .coach .cb{flex:none;font-weight:800;color:#1A1D29;background:var(--gold);border-radius:6px;padding:1px 6px;font-size:11px}
 .coach .ct2{flex:1}
 @keyframes popin{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+
+/* 派手なダメージ演出（v0.41） */
+.fx-hit{animation:shk .35s,hitf .3s ease-out;position:relative;z-index:5}
+@keyframes hitf{0%{filter:brightness(2.4) saturate(.2)}100%{filter:none}}
+.fx-quake{animation:quake .42s}
+.fx-quake-big{animation:quakeB .56s}
+@keyframes quake{0%,100%{transform:none}15%{transform:translate(-5px,3px)}30%{transform:translate(5px,-3px)}45%{transform:translate(-4px,-2px)}60%{transform:translate(3px,2px)}80%{transform:translate(-2px,1px)}}
+@keyframes quakeB{0%,100%{transform:none}10%{transform:translate(-11px,6px) rotate(-.6deg)}22%{transform:translate(10px,-6px) rotate(.6deg)}34%{transform:translate(-9px,-4px)}48%{transform:translate(7px,5px)}62%{transform:translate(-5px,2px)}80%{transform:translate(3px,-1px)}}
+.fx-hurt{position:fixed;inset:0;z-index:39;pointer-events:none;background:radial-gradient(ellipse at center,transparent 50%,rgba(230,20,20,.5) 100%);animation:hurt .65s ease-out forwards}
+.fx-hurt.big{background:radial-gradient(ellipse at center,rgba(255,40,40,.12) 25%,rgba(200,0,0,.72) 100%)}
+@keyframes hurt{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
+.fx-ring{position:fixed;z-index:45;width:24px;height:24px;border-radius:50%;border:5px solid #FFB347;transform:translate(-50%,-50%);pointer-events:none;animation:ring .5s ease-out forwards}
+@keyframes ring{to{width:160px;height:160px;opacity:0;border-width:1px}}
+.fx-spark{position:fixed;z-index:46;width:8px;height:8px;border-radius:2px;background:var(--c);box-shadow:0 0 8px var(--c);pointer-events:none;transform:translate(-50%,-50%);animation:spark .65s cubic-bezier(.15,.7,.3,1) forwards}
+@keyframes spark{to{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--r)) scale(.3);opacity:0}}
+.fx-slash{position:fixed;z-index:46;width:150px;height:7px;border-radius:4px;background:linear-gradient(90deg,transparent,#fff 30%,#FFE08A 70%,transparent);box-shadow:0 0 14px #fff;pointer-events:none;transform:translate(-50%,-50%) rotate(-35deg) scaleX(0);animation:slash .34s ease-out forwards}
+@keyframes slash{45%{transform:translate(-50%,-50%) rotate(-35deg) scaleX(1);opacity:1}100%{transform:translate(-50%,-50%) rotate(-35deg) scaleX(1.25);opacity:0}}
+.fx-lifehit{animation:lifehit .6s ease-out;display:inline-block}
+@keyframes lifehit{0%,100%{transform:none}20%{color:#FF2A2A;transform:scale(1.55)}50%{color:#FF2A2A}}
+.floattx.dmg{color:#FF3030;-webkit-text-stroke:2px #3A0000;paint-order:stroke fill;animation:fltd 1.05s ease-out forwards}
+.floattx.dmg.big{color:#FFE14D;-webkit-text-stroke:3px #8A0000}
+@keyframes fltd{0%{opacity:0;transform:translate(-50%,-40%) scale(2.2)}14%{opacity:1;transform:translate(-50%,-55%) scale(.9)}22%{transform:translate(-48%,-58%) scale(1.15)}30%{transform:translate(-52%,-60%) scale(1)}75%{opacity:1;transform:translate(-50%,-85%)}100%{opacity:0;transform:translate(-50%,-110%)}}
+.floattx.boom{font-size:56px}
 .fx-pop{animation:popin .45s ease-out}
 @keyframes lu{0%,100%{transform:none}40%{transform:translateY(-22px) scale(1.06)}}
 @keyframes ld{0%,100%{transform:none}40%{transform:translateY(22px) scale(1.06)}}
@@ -649,7 +677,7 @@ function deckError(d,free){
 }
 
 /* ===== 状態 ===== */
-const APP_VER='0.40';
+const APP_VER='0.42';
 let scr='splash', G=null, sel=null, showRules=false, ED=null, delId=null, edFilter='all', saveMsg='';
 let setup={d:['st-dragon','st-machine'],mode:'cpu',level:'normal'};
 const LEVELS={easy:'かんたん',normal:'ふつう',hard:'むずかしい'};
@@ -664,7 +692,9 @@ const PHASES=[['draw','ドロー'],['charge','チャージ'],['main','メイン'
 const pn=i=>`§${i}§`;
 const fmtLog=l=>esc(l).replace(/§(\d)§/g,(m,i)=>esc(pname(+i)));
 function pname(i){const who=NET.active?(i===NET.me?'あなた':'相手'):(G.cpu==null?`P${i+1}`:(i===G.cpu?'CPU':'あなた'));return `${who}（${FAC[G.p[i].fac]}）`}
-function log(t){G.log.push(t);if(G.log.length>40)G.log.shift();}
+/* 対戦ログ：G.log は画面下の2行用（最新40件）。BLOG はこの対戦の全部のログ（v0.42） */
+let BLOG=[],BLOG_N=0,showLog=false;
+function log(t){G.log.push(t);if(G.log.length>40)G.log.shift();G.logN=(G.logN||0)+1;if(!SIM){BLOG.push(t);BLOG_N=G.logN;}}
 function makePlayer(deck,i){
   const list=[];Object.entries(deck.cards).forEach(([id,n])=>{for(let k=0;k<n;k++)list.push(id)});
   shuffle(list);
@@ -672,6 +702,7 @@ function makePlayer(deck,i){
     buddy:'zone',buddyCalled:false,finUsed:false,barrier:false,spells:0,buddyId:deck.partner};
 }
 function newGame(decks){
+  BLOG=[];BLOG_N=0;showLog=false;
   G={p:[makePlayer(decks[0],0),makePlayer(decks[1],1)],log:[],over:null,passing:true,phase:'draw',cpu:setup.mode==='cpu'?1:null,level:setup.level};
   G.cur=setup.forceFirst!=null?setup.forceFirst:(Math.random()<.5?0:1);setup.forceFirst=null;G.first=G.cur;sel=null;scr='game';RESULT_DONE=false;
   if(G.cpu!=null&&G.level==='hard'){const c=G.p[G.cpu];c.charge.push(c.deck.shift());log('むずかしいCPUはチャージ1枚からスタート');}
@@ -845,7 +876,8 @@ function moveUnit(from,to){
   p.field[to]=u;p.field[from]=null;u.moved=true;
   log(`${C[u.id].name}が${LANE2[from]}から${LANE2[to]}へ移動`);sel=null;render();
 }
-function canHitPlayer(lanes){const o=op();return !o.field[1]||(lanes.length===1&&!o.field[lanes[0]]);}
+/* 本体への攻撃は、相手のセンターが空いているときだけ（v0.42で変更。以前は正面が空いていてもOKだった） */
+function canHitPlayer(lanes){const o=op();return !o.field[1];}
 function attackAt(lanes,target){
   if(G.phase!=='attack')return;
   const p=me(),o=op();
@@ -992,7 +1024,7 @@ let ROOM, NROOM=null;
 const freshNet=()=>({active:false,me:0,seq:0,lastJSON:'',stage:'idle',code:'',codeInput:'',err:'',oppPeer:null,oppDeck:null,oppLeft:false,peerCount:0,deckId:(NET&&NET.deckId)||'st-dragon'});
 let NET=null;NET=freshNet();
 /* 中継サーバー通信（MQTT）：Claudeの外で開いたとき用 */
-const NET_VER='v036';
+const NET_VER='v042';
 const BROKERS=[['wss://broker.emqx.io:8084/mqtt','1'],['wss://broker.hivemq.com:8884/mqtt','2'],['wss://test.mosquitto.org:8081','3']];
 function connectBroker(i,willTopic){return new Promise((res,rej)=>{
   if(i>=BROKERS.length){rej(new Error('no broker'));return;}
@@ -1056,7 +1088,7 @@ const MQTT_SRC='https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js';let M
 const hasClaudeAPI=()=>!!(window.claude&&typeof window.claude.use==='function');
 if(hasClaudeAPI())initRoom();
 const netWait=()=>!!(NET.active&&G&&G.cur!==NET.me&&!G.over);
-function compactG(){const c=structuredClone(G);c.log=c.log.slice(-4);return c;}
+function compactG(){const c=structuredClone(G);c.log=c.log.slice(-12);return c;}
 function netSync(){
   if(!NET.active||!NROOM||!G)return;
   const c=compactG(),s=JSON.stringify(c);
@@ -1078,6 +1110,7 @@ function startOnline(){
   log(`${pn(G.cur)}が先攻`);nextTurn();
 }
 function adopt(st,sq){
+  {const n=st.logN||0;if(n<BLOG_N){BLOG=[];BLOG_N=0;}const add=n-BLOG_N;if(add>0){(st.log||[]).slice(-Math.min(add,(st.log||[]).length)).forEach(t=>BLOG.push(t));BLOG_N=n;}}
   G=structuredClone(st);NET.seq=sq;NET.lastJSON=JSON.stringify(st);
   if(!NET.active){NET.active=true;NET.me=1;}
   if(!G.over){if(RESULT_DONE||!NET.started){RESULT_DONE=false;NET.started=true;track('online');}}else recordResult();
@@ -1239,23 +1272,44 @@ function flushFx(){
   if(!FXQ.length)return;const list=FXQ.splice(0);
   if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   if(typeof document.createElement!=='function'||typeof requestAnimationFrame!=='function')return;
-  requestAnimationFrame(()=>list.forEach(e=>{try{runFx(e);}catch(x){}}));
+  /* 攻撃したときは、モンスターが飛びかかって当たる瞬間に合わせてダメージを出す */
+  const hasAtk=list.some(e=>e.t==='attack');
+  requestAnimationFrame(()=>list.forEach(e=>{const go=()=>{try{runFx(e);}catch(x){}};
+    if(hasAtk&&['dmg','hit','destroy','block'].includes(e.t))setTimeout(go,170);else go();}));
 }
 const slotEl=(pi,lane)=>document.querySelector(`.slot[data-pi="${pi}"][data-lane="${lane}"]`);
 const infoEl=pi=>document.querySelector(`.info[data-pi="${pi}"]`);
 function floatText(el,text,cls){
   if(!el)return;const r=el.getBoundingClientRect(),d=document.createElement('div');
   d.className='floattx '+cls;d.textContent=text;d.style.left=(r.left+r.width/2)+'px';d.style.top=(r.top+r.height/2)+'px';
-  document.body.appendChild(d);setTimeout(()=>d.remove(),1100);
+  document.body.appendChild(d);setTimeout(()=>d.remove(),1100);return d;
 }
 function anim(el,cls,ms){if(!el)return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms||500);}
+
+/* ダメージ演出の部品（v0.41） */
+function fxPos(el){if(!el)return null;const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};}
+function fxDiv(cls,x,y,ms){const d=document.createElement('div');d.className=cls;d.style.left=x+'px';d.style.top=y+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),ms);return d;}
+function sparksAt(el,n,cols){const c=fxPos(el);if(!c)return;
+  for(let i=0;i<n;i++){const a=Math.PI*2*i/n+Math.random()*0.5,r=50+Math.random()*60,d=fxDiv('fx-spark',c.x,c.y,750);
+    d.style.setProperty('--dx',Math.cos(a)*r+'px');d.style.setProperty('--dy',Math.sin(a)*r+'px');d.style.setProperty('--r',Math.round(Math.random()*360)+'deg');
+    d.style.setProperty('--c',cols[i%cols.length]);const z=6+Math.random()*6;d.style.width=z+'px';d.style.height=z+'px';}}
+function ringAt(el,col){const c=fxPos(el);if(!c)return;const d=fxDiv('fx-ring',c.x,c.y,600);d.style.borderColor=col;}
+function slashAt(el){const c=fxPos(el);if(!c)return;fxDiv('fx-slash',c.x,c.y,400);}
+function quake(big){const a=document.querySelector('#app');anim(a,big?'fx-quake-big':'fx-quake',big?560:420);}
+function hurtFlash(big){const d=document.createElement('div');d.className='fx-hurt'+(big?' big':'');document.body.appendChild(d);setTimeout(()=>d.remove(),700);}
+function buzz(p){try{if(SND.set.se&&navigator.vibrate)navigator.vibrate(p);}catch(x){}}
 function runFx(e){
   switch(e.t){
     case 'summon':anim(slotEl(e.pi,e.lane),'fx-pop',500);break;
     case 'attack':e.lanes.forEach(l=>anim(slotEl(e.pi,l),e.pi===viewIdx()?'fx-lunge-up':'fx-lunge-down',450));break;
-    case 'hit':anim(slotEl(e.pi,e.lane),'fx-shake',400);break;
-    case 'destroy':{const el=slotEl(e.pi,e.lane);anim(el,'fx-break',650);floatText(el,'💥','boom');break;}
-    case 'dmg':{const el=infoEl(e.pi);anim(el,'fx-shake',400);floatText(el,'-'+e.n,'dmg');break;}
+    case 'hit':{const el=slotEl(e.pi,e.lane);anim(el,'fx-hit',400);slashAt(el);sparksAt(el,8,['#FFFFFF','#FFE08A','#FFB347']);break;}
+    case 'destroy':{const el=slotEl(e.pi,e.lane);anim(el,'fx-break',650);ringAt(el,'#FF8A3D');sparksAt(el,14,['#FF5A1F','#FFC93D','#FF2E2E','#FFFFFF']);
+      floatText(el,'💥','boom');quake(false);break;}
+    case 'dmg':{const el=infoEl(e.pi),big=e.n>=3,me=e.pi===viewIdx();
+      anim(el,'fx-shake',400);anim(el&&el.querySelector('.life'),'fx-lifehit',650);
+      ringAt(el,big?'#FF3B3B':'#FFB347');sparksAt(el,big?16:9,['#FF3B3B','#FF8A3D','#FFE08A']);
+      const t=floatText(el,'-'+e.n,'dmg'+(big?' big':''));if(t)t.style.fontSize=Math.min(68,34+e.n*5)+'px';
+      quake(big||me);if(me)hurtFlash(big);buzz(big?[70,40,110]:45);break;}
     case 'heal':floatText(infoEl(e.pi),'+'+e.n,'heal');break;
     case 'block':floatText(e.lane!=null?slotEl(e.pi,e.lane):infoEl(e.pi),'ガード','block');break;
     case 'burst':{const d=document.createElement('div');d.className='fx-flash';document.body.appendChild(d);setTimeout(()=>d.remove(),900);break;}
@@ -1366,7 +1420,7 @@ const TUT_PAGES=[
  {icon:'🔄',title:'ターンの流れ',body:'<b>ドロー</b>：1枚引く<br><b>チャージ</b>：手札を1枚、チャージゾーンに置ける<br><b>メイン</b>：カードを使う<br><b>アタック</b>：モンスターで攻撃<br><b>エンド</b>：ターン終了'},
  {icon:'⚡',title:'チャージとソウル',body:'カードを使うには<b>ソウル</b>が必要です。<br>ソウルは<b>チャージゾーンの枚数</b>ぶん、毎ターン使えます。<br>まずは毎ターン1枚ずつチャージしていくのが基本です。'},
  {icon:'🃏',title:'場とモンスター',body:'場は<b>レフト・センター・ライト</b>の3マス。<br>出したばかりのモンスターは、そのターンは攻撃できません（<b>速攻</b>は例外）。<br>カードの「攻」は攻撃力、「体」は体力、「打」は相手ライフへのダメージです。'},
- {icon:'⚔️',title:'攻撃',body:'攻撃したい<b>敵モンスターを選んで</b>攻撃。攻撃力が相手の体力以上なら破壊できます。<br>自分の<b>正面が空いている</b>か、相手の<b>センターが空いている</b>と、相手の本体を直接攻撃できます。'},
+ {icon:'⚔️',title:'攻撃',body:'攻撃したい<b>敵モンスターを選んで</b>攻撃。攻撃力が相手の体力以上なら破壊できます。<br>相手の<b>センターが空いている</b>ときだけ、相手の本体を直接攻撃できます。センターにモンスターがいるうちは、本体は狙えません。'},
  {icon:'🤝',title:'連携攻撃',body:'2〜3体で<b>同時に攻撃</b>すると、攻撃力を合計できます。<br>1体では倒せない硬いモンスターも、みんなで倒しましょう。'},
  {icon:'✨',title:'パートナーとソウルバースト',body:'<b>パートナー</b>はいつでも呼べる相棒。初めて呼ぶとライフ+1。<br>ライフが<b>4以下</b>になると、1ゲームに1回だけ大技<b>ソウルバースト</b>が使えます。逆転のチャンス！'},
 ];
@@ -1409,7 +1463,7 @@ function coachTip(){
     if(p.life<=4&&!p.finUsed&&p.hand.some(id=>C[id].type==='finisher'))list.push(T('burst','ライフが4以下なので、ソウルバーストが使えます！逆転のチャンス！'));
   }
   if(G.phase==='attack'){
-    if(ready.length)list.push(T('attack','緑に光るモンスターをタップして、攻撃したい敵をタップ。正面が空いていれば「本体」も狙えます。'));
+    if(ready.length)list.push(T('attack','緑に光るモンスターをタップして、攻撃したい敵をタップ。相手のセンターが空いていれば「本体」も狙えます。'));
     if(ready.length>=2&&o.field.some(Boolean))list.push(T('link','「連携」を使うと、2〜3体の攻撃力を合計できます。硬い敵はみんなで倒そう！'));
     if(ready.length&&!o.field[1])list.push(T('center','相手のセンターが空いています！どのモンスターでも本体を攻撃できます。'));
     if(!ready.length)list.push(T('end','攻撃できるモンスターがいなければ「ターン終了」で相手の番です。'));
@@ -1483,7 +1537,7 @@ function boardHTML(){
     ${chargeHTML(p,g(3,1,2))}${slotHTML(p,'me',1,g(3,3))}${pilesHTML(p,'me','grid-row:3;grid-column:4 / span 2;justify-content:center','dg')}
     ${slotHTML(p,'me',0,g(4,2))}${pzoneHTML(p,'me',g(4,3))}${slotHTML(p,'me',2,g(4,4))}
   </div>
-  <div class="mid">${G.log.slice(-2).map(l=>`<div>${fmtLog(l)}</div>`).join('')}</div>`;
+  <div class="mid" data-act="showlog" role="button" tabindex="0" aria-label="対戦ログを見る"><span class="logopen">ログ</span>${G.log.slice(-2).map(l=>`<div>${fmtLog(l)}</div>`).join('')}</div>`;
 }
 function panelHTML(){
   const p=vme(),ph=G.phase;
@@ -1527,7 +1581,7 @@ function panelHTML(){
       else{
         const others=[0,1,2].some(l=>l!==sel.lane&&canAttack(pl.field[l],pl,l));
         hint=vop().field.some(Boolean)?'攻撃したい敵（光っているマス）をタップ、またはそこへドラッグ':'敵モンスターはいません';
-        if(canHitPlayer([sel.lane]))hint+=(!vop().field[1]?'。センターが空いているので':'。正面が空いているので')+'本体も狙える';
+        if(canHitPlayer([sel.lane]))hint+='。センターが空いているので本体も狙える';
         btns=(canHitPlayer([sel.lane])?'<button class="btn go" data-act="atk-player">本体</button>':'')+(others?'<button class="btn" data-act="link">連携</button>':'');
       }
     }
@@ -1564,8 +1618,8 @@ const RULES=`<div class="rules">
 <h3>基本</h3><ul>
 <li>カードはタップでも、ドラッグ＆ドロップでも動かせる（手札→場・チャージゾーン、モンスター→敵・相手のライフ・空きマス）</li>
 <li>ライフ10、デッキ30枚、手札5枚でスタート</li>
-<li>場はレフト・センター・ライト。攻撃先は相手の好きなモンスターを選べる。正面が空いていれば相手の本体も攻撃できる（打撃ぶんライフにダメージ）</li>
-<li>相手のセンターが空いていれば、どのモンスターでも本体を攻撃できる</li>
+<li>場はレフト・センター・ライト。攻撃先は相手の好きなモンスターを選べる</li>
+<li>相手の本体を攻撃できるのは、相手のセンターが空いているときだけ（打撃ぶんライフにダメージ）。センターにモンスターがいると、正面が空いていても本体は攻撃できない</li>
 <li>連携攻撃：2〜3体で同時に攻撃して攻撃力を合計できる。相手のどのモンスターでも狙える。センターが空いていれば本体も狙え、打撃の合計がダメージになる</li>
 <li>攻撃力が相手の体力以上なら破壊。攻撃した側は傷つかない</li>
 <li>出したターンは攻撃できない（速攻は例外）。攻撃は1体につき1ターン1回（2回攻撃・3回攻撃は例外）</li>
@@ -1664,6 +1718,12 @@ function editHTML(){
   <p style="margin:0;font-size:12px;color:var(--muted)">持っているカードだけ表示しています。カードはパックで集められます。</p>
   <div class="savebar"><span class="msg ${err?'':'ok'}">${esc(saveMsg||err||'このデッキで対戦できます')}</span><button class="btn go" data-act="save-deck">保存</button></div>`;
 }
+function logOv(){
+  if(!showLog||!G)return '';
+  const rows=BLOG.map(l=>/のターン \d+$/.test(l)?`<div class="lt">${fmtLog(l)}</div>`:`<div>${fmtLog(l)}</div>`).join('');
+  return `<div class="ov"><div class="ovbox logov"><h2>対戦ログ</h2><div class="logscroll">${rows||'<div>まだありません</div>'}</div>
+    <button class="btn" data-act="closelog">閉じる</button></div></div>`;
+}
 function rulesOv(){return showRules?`<div class="ov"><div class="ovbox"><h2>メニュー</h2>${soundHTML()}${RULES}<button class="btn" data-act="rules">閉じる</button>${scr==='game'&&G?'<button class="btn sub" data-act="quit">対戦をやめる</button>':''}</div></div>`:'';}
 function pickHTML(){
   const info={dragon:'攻撃型。速攻と高い攻撃力で、早めにライフを削りきる',machine:'守備型。硬いモンスターと回復で耐えて、後半に逆転する',magic:'テクニック型。呪文や封印・幻影で相手を翻弄する'};
@@ -1709,12 +1769,14 @@ function render(){
   app.className='game';
   if(G.over){
     app.innerHTML='';
+    if(showLog){ov.innerHTML=logOv();const ls=ov.querySelector('.logscroll');if(ls)ls.scrollTop=ls.scrollHeight;return;}
     ov.innerHTML=`<div class="ov"><div class="ovbox"><h1 class="${FCLS[G.p[G.over.w].fac]}">${pname(G.over.w)}の勝ち</h1>
       <p>${fmtLog(G.over.reason)}</p>
       ${G.tutBonus?`<p class="reward">チュートリアル完了ボーナス +${G.tutBonus} コイン！</p>`:''}
       ${G.rewarded?`<p class="reward">+${G.rewarded} コイン獲得！（所持 ${SAVE.coins}）</p><button class="btn bigbtn" data-act="go-shop">パックを買いに行く</button>`:''}
       ${NET.active?(NET.me===0&&!NET.oppLeft?'<button class="btn go bigbtn" data-act="net-rematch">もう一度対戦</button>':`<p>${NET.oppLeft?'相手が部屋から出ました':'部屋を作った人が「もう一度対戦」を押すと始まります'}</p>`)
       :'<button class="btn go bigbtn" data-act="start">同じデッキでもう一度</button>\n      <button class="btn sub" data-act="go-setup">デッキを選び直す</button>'}
+      <button class="btn sub" data-act="showlog">対戦ログを見る</button>
       <button class="btn sub" data-act="go-title">タイトルへ</button></div></div>`;
     return;
   }
@@ -1727,8 +1789,9 @@ function render(){
       <button class="btn sub" data-act="quit">対戦をやめる</button></div></div>`;
     return;
   }
-  ov.innerHTML=rulesOv();
+  ov.innerHTML=showLog?logOv():rulesOv();
   app.innerHTML=`<div class="board">${boardHTML()}</div><div class="dock">${dockHTML()}</div>`;
+  if(showLog){const ls=ov.querySelector('.logscroll');if(ls)ls.scrollTop=ls.scrollHeight;}
   flushFx();
 }
 
@@ -1744,7 +1807,9 @@ document.addEventListener('click',e=>{
   if(a==='snd-bgm'){SND.set.bgm=!SND.set.bgm;sndSave();if(SND.set.bgm){SND.mode=null;}bgm(SND.want||'menu');render();return;}
   if(a==='snd-se'){SND.set.se=!SND.set.se;sndSave();render();if(SND.set.se)sfx('tap');return;}
   if(a==='rules'){showRules=!showRules;render();return;}
-  if(a==='go-title'){netLeave();scr='title';G=null;showRules=false;render();return;}
+  if(a==='showlog'){if(G){showLog=true;showRules=false;render();}return;}
+  if(a==='closelog'){showLog=false;render();return;}
+  if(a==='go-title'){netLeave();scr='title';G=null;showRules=false;showLog=false;render();return;}
   if(a==='go-online'){scr='online';if(!hasClaudeAPI()&&!ROOM)initRoom();render();return;}
   if(a==='net-create'){netJoin(String(Math.floor(1000+Math.random()*9000)));return;}
   if(a==='net-join'){netJoin((NET.codeInput||'').trim());return;}
