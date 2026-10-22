@@ -280,6 +280,30 @@ select,input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px so
 .news .ntag{font-size:11px;font-weight:700;color:#fff;background:var(--danger);border-radius:99px;padding:1px 8px}
 .news .ntag.imp{background:var(--gold)}
 .news ul{margin:0;padding-left:1.2em;font-size:14px;line-height:1.6}
+
+.talkov{align-items:flex-end;cursor:pointer}
+.talkbox{width:min(560px,100%);background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:0 10px 30px rgba(0,0,0,.25);margin-bottom:max(12px,env(safe-area-inset-bottom));cursor:default}
+.talkbox .talkart{height:180px;border-radius:12px;background-size:cover;background-position:center;margin-bottom:10px}
+.talkbox .spk{font-weight:800;font-size:14px;color:var(--gold);margin-bottom:2px}
+.talkbox p{margin:0 0 10px;font-size:16px;line-height:1.7}
+.talkbox p.narr{font-style:italic;color:var(--muted)}
+.talkbtns{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.talkbtns .dm{margin-right:auto}
+.chapter .nh{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.chapter.dr{border-left:5px solid #E2582A}.chapter.ma{border-left:5px solid #3D7FC4}.chapter.mg{border-left:5px solid #8A55C9}
+.stagerow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--table);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font:inherit;color:inherit;cursor:pointer}
+.stagerow.lock{opacity:.55;cursor:default}
+.stagerow .sid{font-family:"Dela Gothic One",sans-serif;font-size:15px;min-width:34px}
+.stagerow .sn{flex:1;line-height:1.35}
+.stagerow .sn .ntag{margin-left:6px;font-size:10px;color:#fff;background:var(--gold);border-radius:99px;padding:1px 7px}
+.stagerow .sst{font-size:16px;color:var(--gold);min-width:30px;text-align:right}
+.stagebox .stageart{height:150px;border-radius:12px;background-size:cover;background-position:center}
+.deckpick{display:flex;flex-wrap:wrap;gap:6px}
+.pickur{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pickone{display:flex;flex-direction:column;gap:4px}
+.pickone .dm{font-size:10px;line-height:1.35}
+.talkov{align-items:flex-end!important;padding-bottom:12px}
+.dm{color:var(--muted);font-size:12px}
 .badge2{display:inline-block;margin-left:6px;min-width:18px;padding:0 5px;border-radius:99px;background:var(--danger);color:#fff;font-size:11px}
 .codebox{display:flex;gap:6px}.codebox input{flex:1;font-size:12px;padding:8px}
 .savecode{width:100%;min-height:96px;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--surface);font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;color:inherit;word-break:break-all;resize:vertical;box-sizing:border-box}
@@ -588,7 +612,7 @@ let MY=loadDecks();
 const PACK_PRICE=100, PACK_SIZE=5, REWARD={easy:50,normal:100,hard:200};
 const SKEY='resonance.save.v2';
 function freshSave(){return {coins:0,owned:{},starter:null};}
-function normSave(v){if(typeof v.shards!=='number')v.shards=0;if(!v.stats)v.stats={cpu:{easy:[0,0],normal:[0,0],hard:[0,0]},online:[0,0],fac:{dragon:[0,0],machine:[0,0],magic:[0,0]}};if(!('daily' in v))v.daily=null;return v;}
+function normSave(v){if(typeof v.shards!=='number')v.shards=0;if(!v.stats)v.stats={cpu:{easy:[0,0],normal:[0,0],hard:[0,0]},online:[0,0],fac:{dragon:[0,0],machine:[0,0],magic:[0,0]}};if(!('daily' in v))v.daily=null;if(!v.story||typeof v.story!=='object')v.story={};const S=v.story;if(!S.clear||typeof S.clear!=='object')S.clear={};if(!S.star||typeof S.star!=='object')S.star={};S.pro=!!S.pro;S.urPending=!!S.urPending;return v;}
 function loadSave(){try{const v=JSON.parse(localStorage.getItem(SKEY)||'null');if(v&&typeof v.coins==='number'&&v.owned)return normSave(v);}catch(e){}return normSave(freshSave());}
 function storeSave(){try{localStorage.setItem(SKEY,JSON.stringify(SAVE));return true;}catch(e){return false;}}
 let SAVE=loadSave();storeSave();
@@ -624,7 +648,8 @@ function cleanSaveData(d){
   const okStats=s.stats&&s.stats.cpu&&s.stats.fac&&Array.isArray(s.stats.online);
   const okDaily=s.daily&&typeof s.daily.date==='string'&&Array.isArray(s.daily.ids)&&s.daily.prog&&s.daily.claimed;
   const save=normSave({coins:int(s.coins),shards:int(s.shards),owned,starter:STARTERS.some(x=>x.id===s.starter)?s.starter:null,
-    stats:okStats?s.stats:undefined,daily:okDaily?s.daily:null,tutDone:!!s.tutDone});
+    stats:okStats?s.stats:undefined,daily:okDaily?s.daily:null,tutDone:!!s.tutDone,
+    story:s.story&&typeof s.story==='object'?{clear:Object.fromEntries(Object.keys(s.story.clear||{}).filter(k=>STORY.some(x=>x.id===k)).map(k=>[k,true])),star:Object.fromEntries(Object.keys(s.story.star||{}).filter(k=>STORY.some(x=>x.id===k)).map(k=>[k,true])),pro:!!s.story.pro,urPending:!!s.story.urPending}:undefined});
   const decks=(Array.isArray(d.decks)?d.decks:[]).filter(x=>x&&FAC[x.fac]&&x.cards&&typeof x.cards==='object').slice(0,100).map((x,i)=>{
     const cards={};for(const [id,n] of Object.entries(x.cards))if(C[id]&&C[id].fac===x.fac&&int(n)>0)cards[id]=Math.min(3,int(n));
     return {id:typeof x.id==='string'&&x.id?x.id.slice(0,40):'d'+Date.now().toString(36)+i,name:String(x.name||FAC[x.fac]).slice(0,30),fac:x.fac,
@@ -684,10 +709,197 @@ function deckError(d,free){
 }
 
 /* ===== 状態 ===== */
-const APP_VER='0.44';
+const APP_VER='0.45';
+/* ===== ストーリーモード（v0.45） ===== */
+const STORY_PRO=[
+ ['ナレーション','はるか昔、ある文明が、強大な存在の「魂」をカードに封じ込めた。'],
+ ['ナレーション','誇り高き竜の魂。封印を守る機械の魂。そして封印そのものを作った、魔法文明の魂——'],
+ ['ナレーション','千年の時が流れ、そのカードが、いま世界中で発掘されはじめている。'],
+ ['発掘者ドルク','おお、目を覚ましたか。遺跡の入口で倒れておったんじゃよ。そのカードを握りしめてな。'],
+ ['発掘者ドルク','…光っておるな。カードの魂と心が通じた者だけが、封じられた存在を呼び出せる。それを「共鳴」という。'],
+ ['','カードがまぶしく輝き、{P}が姿を現した。','{PID}'],
+ ['{P}','{PL}','{PID}'],
+ ['発掘者ドルク','共鳴した一枚は「パートナー」。おまえの一番の相棒じゃ。大事にするんじゃぞ。'],
+ ['発掘者ドルク','じゃが気をつけろ。カードが目覚めはじめてから、封印がゆらいでおる。竜は自由を求め、機械は封印を守ろうとし、魔法の民は口を閉ざしたままじゃ。'],
+ ['発掘者ドルク','封印の真実を知りたければ、三つの地を巡るがいい。火山の竜の巣、守護機械の遺跡、そして星読みの丘じゃ。'],
+ ['発掘者ドルク','共鳴者どうしが出会えば、することは一つ。カードで語り合うんじゃよ。'],
+ ['ナレーション','——こうして、あなたと{P}の旅が始まった。'],
+];
+const STORY_PL={dragon:'やっと会えたな！ずっと封印の中で待ってたんだ。おまえとなら、どこまでも飛べそうだ！',
+ machine:'共鳴を確認。登録完了。これより、あなたを守ることを最優先の任務とします。',
+ magic:'星が告げていました、あなたと出会うことを。封印のこと…少しずつ、お話しできたらと思います。'};
+const STORY_CH=[
+ {id:1,name:'第1章 竜の目覚め',fac:'dragon',place:'火山の竜の巣'},
+ {id:2,name:'第2章 守護機械の遺跡',fac:'machine',place:'守護機械の遺跡'},
+ {id:3,name:'第3章 封印を作った者たち',fac:'magic',place:'星読みの丘'},
+ {id:4,name:'終章 封印の奥',fac:null,place:'封印の奥'},
+];
+const CHAL={life5:'ライフ5以上で勝つ',turn12:'12ターン以内に勝つ',noburst:'ソウルバーストを使わずに勝つ'};
+const STORY=[
+ {id:'1-1',ch:1,name:'火山のふもと',opp:'発掘者ミナ',fac:'dragon',partner:'D-01',level:'easy',life:10,charge:0,chal:'life5',coins:100,card:'D-14',
+  theme:'コスト1〜3の小さなドラゴンが中心。まずは一戦！',
+  cards:{'D-01':3,'D-10':3,'D-11':3,'D-12':2,'D-13':2,'D-15':2,'D-16':3,'D-02':2,'D-24':2,'D-35':2,'D-36':2,'D-06':2,'D-09':2},
+  pre:[['発掘者ミナ','このカード、さっき掘り出したばかりなの！共鳴した者どうし、一戦どう？']],
+  post:[['発掘者ミナ','すごい…その子と本当に心が通じてるんだね。'],['発掘者ミナ','この先の火口には、竜騎士の見習いたちが修行してるよ。']]},
+ {id:'1-2',ch:1,name:'竜騎士の試練',opp:'竜騎士見習いトウマ',fac:'dragon',partner:'D-18',level:'normal',life:10,charge:0,chal:'turn12',coins:150,card:'D-28',
+  theme:'速攻と貫通で押してくる。センターを空けないように守ろう',
+  cards:{'D-18':3,'D-02':3,'D-10':2,'D-14':2,'D-20':2,'D-23':2,'D-17':2,'D-16':2,'D-32':2,'D-29':2,'D-39':2,'D-38':2,'D-40':2,'D-47':2},
+  pre:[['竜騎士見習いトウマ','竜騎士になるには、強い共鳴者に勝たなきゃいけないんだ。勝負！']],
+  post:[['竜騎士見習いトウマ','くっ…レオン様なら、きっとおまえを止められる。']]},
+ {id:'1-3',ch:1,name:'怒れる火山',opp:'火山の番人グレン',fac:'dragon',partner:'D-30',level:'normal',life:10,charge:0,chal:'noburst',coins:150,card:'D-29',
+  theme:'大型ドラゴンと、破壊されたときのダメージ。除去呪文の使いどころが大事',
+  cards:{'D-30':3,'D-19':3,'D-22':2,'D-27':2,'D-26':2,'D-03':2,'D-16':2,'D-04':2,'D-12':2,'D-11':2,'D-43':2,'D-44':2,'D-41':2,'D-09':2},
+  pre:[['火山の番人グレン','火山が騒いでいる。封印のせいか、おまえのせいか…確かめさせてもらう。']],
+  post:[['火山の番人グレン','封印に近づくなら、竜騎士レオンに会え。この先の火口だ。']]},
+ {id:'1-4',ch:1,boss:true,name:'紅蓮の騎士',opp:'紅蓮の竜騎士レオン',fac:'dragon',partner:'D-50',level:'normal',life:10,charge:0,chal:'life5',coins:300,card:'D-50',
+  theme:'VR入りの速攻デッキ。パートナーが場にいると強くなる切り札に注意',
+  cards:{'D-50':3,'D-02':3,'D-20':2,'D-14':2,'D-29':2,'D-04':2,'D-21':2,'D-13':2,'D-38':2,'D-36':2,'D-16':2,'D-03':2,'D-10':2,'D-09':2},
+  pre:[['紅蓮の竜騎士レオン','竜は誇り高き一族。封印に触れようとする者を、試させてもらう。']],
+  post:[['紅蓮の竜騎士レオン','…見事だ。おまえの共鳴は本物だ。'],['紅蓮の竜騎士レオン','竜は封印から自由になりたがっている。だが機械どもはそれを許さん。機械の遺跡へ行け。答えのかけらがある。']]},
+ {id:'2-1',ch:2,name:'動き出した遺跡',opp:'整備士ポポ',fac:'machine',partner:'M-13',level:'easy',life:10,charge:0,chal:'turn12',coins:100,card:'M-17',
+  theme:'回復しながら粘ってくる。長い戦いに慣れよう',
+  cards:{'M-13':3,'M-01':3,'M-11':2,'M-10':3,'M-03':2,'M-21':2,'M-02':2,'M-35':3,'M-28':2,'M-37':2,'M-48':2,'M-16':2,'M-14':2},
+  pre:[['整備士ポポ','わわっ、遺跡の機械が勝手に動き出したの！手伝って…じゃなくて、勝負して！']],
+  post:[['整備士ポポ','ありがとう！機械たちも落ち着いたみたい。'],['整備士ポポ','奥の門はガルム隊長が守ってるよ。すっごく固いんだから！']]},
+ {id:'2-2',ch:2,name:'鉄の門',opp:'防衛隊長ガルム',fac:'machine',partner:'M-18',level:'normal',life:10,charge:0,chal:'life5',coins:150,card:'M-24',
+  theme:'体力の高いモンスターでセンターを固める。速攻・移動なら、正面が空いていれば本体を狙える！',
+  cards:{'M-18':3,'M-16':3,'M-11':2,'M-02':2,'M-29':2,'M-26':2,'M-31':1,'M-33':1,'M-22':2,'M-07':2,'M-38':2,'M-44':2,'M-40':2,'M-47':2,'M-20':2},
+  pre:[['防衛隊長ガルム','この門は誰も通さん。センターを越えられるものなら越えてみろ。']],
+  post:[['防衛隊長ガルム','門を抜けたか…ゼノ博士が奥で待っている。']]},
+ {id:'2-3',ch:2,name:'連結部隊',opp:'司令オペレーター・ミオ',fac:'machine',partner:'M-25',level:'normal',life:12,charge:0,chal:'noburst',coins:150,card:'M-30',
+  theme:'モンスターが並ぶほど強くなる。数を減らす除去が大切',
+  cards:{'M-25':3,'M-04':3,'M-15':3,'M-30':2,'M-01':2,'M-12':2,'M-17':2,'M-22':2,'M-45':2,'M-41':2,'M-36':2,'M-06':2,'M-49':1,'M-09':1,'M-19':1},
+  pre:[['司令オペレーター・ミオ','全機、連結完了。目標、侵入者。一斉攻撃を開始します。']],
+  post:[['司令オペレーター・ミオ','連結が崩されるなんて…博士に報告しないと。']]},
+ {id:'2-4',ch:2,boss:true,name:'目覚めた守護者',opp:'機甲博士ゼノ',fac:'machine',partner:'M-50',level:'normal',life:10,charge:0,chal:'turn12',coins:300,card:'M-50',
+  theme:'加護を持つ固い司令機と連結。長い戦いで押しつぶしてくる',
+  cards:{'M-50':3,'M-00':2,'M-18':2,'M-22':3,'M-24':2,'M-27':2,'M-29':2,'M-04':2,'M-40':2,'M-39':2,'M-45':2,'M-03':2,'M-15':2,'M-09':2},
+  pre:[['機甲博士ゼノ','機械は封印を守るために造られた。竜にも魔法にも、封印には近づけさせん！']],
+  post:[['機甲博士ゼノ','…封印を作ったのは魔法の文明だ。'],['機甲博士ゼノ','なぜ今カードが目覚めたのか、彼らなら知っているはずだ。星読みの丘へ行け。']]},
+ {id:'3-1',ch:3,name:'星読みの丘',opp:'見習い魔女リリ',fac:'magic',partner:'W-01',level:'easy',life:10,charge:0,chal:'life5',coins:100,card:'W-25',
+  theme:'呪文をたくさん使ってくる。呪文の動きを見ておこう',
+  cards:{'W-01':3,'W-10':3,'W-14':2,'W-12':2,'W-11':2,'W-13':2,'W-30':3,'W-05':2,'W-32':2,'W-44':2,'W-38':2,'W-35':2,'W-09':2,'W-16':1},
+  pre:[['見習い魔女リリ','星が言ってたの。今日、すごい共鳴者が来るって。あなたのことね！']],
+  post:[['見習い魔女リリ','やっぱり星の言うとおり！'],['見習い魔女リリ','封印のことを知りたいなら、封印の社へ行ってみて。']]},
+ {id:'3-2',ch:3,name:'封印の社',opp:'封印の巫女サヤ',fac:'magic',partner:'W-18',level:'normal',life:10,charge:0,chal:'turn12',coins:150,card:'W-23',
+  theme:'封印でこちらの攻撃を止めてくる。封印を持つモンスターをどう崩すか',
+  cards:{'W-18':3,'W-04':2,'W-22':2,'W-27':1,'W-03':2,'W-13':2,'W-12':2,'W-17':2,'W-15':2,'W-33':2,'W-34':2,'W-39':2,'W-36':2,'W-31':2,'W-46':2},
+  pre:[['封印の巫女サヤ','封印に近づく者は、まず封印に縛られてもらいます。']],
+  post:[['封印の巫女サヤ','封印を破るのではなく、越えていく…あなたは不思議な人ですね。']]},
+ {id:'3-3',ch:3,name:'時計塔の罠',opp:'時計塔の魔導士エルマ',fac:'magic',partner:'W-28',level:'normal',life:12,charge:0,chal:'noburst',coins:150,card:'W-24',
+  theme:'敵全員の攻撃力を下げて守る。攻めるタイミングを選ぼう',
+  cards:{'W-28':3,'W-15':3,'W-20':2,'W-23':2,'W-24':2,'W-16':2,'W-19':2,'W-40':2,'W-34':2,'W-08':2,'W-41':2,'W-35':2,'W-45':2,'W-47':2},
+  pre:[['時計塔の魔導士エルマ','時計塔の針が逆に回りはじめた。封印がゆらいでいる証拠よ。']],
+  post:[['時計塔の魔導士エルマ','大賢者セフィラ様が、あなたを待っているわ。']]},
+ {id:'3-4',ch:3,boss:true,name:'星詠みの賢者',opp:'大賢者セフィラ',fac:'magic',partner:'W-50',level:'normal',life:12,charge:0,chal:'life5',coins:300,card:'W-50',
+  theme:'呪文で強くなるモンスターと、カードを引く力。呪文が続く前に倒そう',
+  cards:{'W-50':3,'W-29':1,'W-00':2,'W-24':2,'W-21':2,'W-16':3,'W-19':2,'W-55':1,'W-53':1,'W-36':2,'W-38':2,'W-42':2,'W-41':2,'W-45':2,'W-43':1,'W-57':1,'W-09':1},
+  pre:[['大賢者セフィラ','封印は、竜と機械の争いを止めるために、わたしたちが作ったもの。'],['大賢者セフィラ','それを揺るがす共鳴…あなたの力、見せてもらいます。']],
+  post:[['大賢者セフィラ','封印の奥で、何かが目を覚まそうとしている。'],['大賢者セフィラ','竜とも、機械とも、魔法とも共鳴したあなたなら…きっと、たどり着ける。']]},
+ {id:'4-1',ch:4,name:'影の共鳴者',opp:'影の共鳴者',fac:'mirror',partner:null,level:'normal',life:10,charge:0,chal:'turn12',coins:200,shards:100,
+  theme:'あなたが選んだデッキの写しと戦う。自分のデッキの弱点を知ろう',
+  pre:[['影の共鳴者','おまえの共鳴を写しとった。自分自身に勝てるか？']],
+  post:[['影の共鳴者','…それが、おまえの答えか。'],['影の共鳴者','封印の番人が、この先で待っている。']]},
+ {id:'4-2',ch:4,name:'封印の番人',opp:'封印の大魔導師オルド',fac:'magic',partner:'W-04',level:'normal',life:10,charge:0,chal:'noburst',coins:300,card:'W-56',
+  theme:'封印と攻撃力ダウンで最後の守り。総力戦',
+  cards:{'W-04':3,'W-18':2,'W-22':2,'W-03':2,'W-56':1,'W-23':2,'W-28':2,'W-17':2,'W-40':2,'W-44':2,'W-33':2,'W-36':2,'W-31':2,'W-13':2,'W-12':1,'W-47':1},
+  pre:[['封印の大魔導師オルド','わしが封印を作った。千年、守ってきた。'],['封印の大魔導師オルド','その先へ行くというなら、わしを越えてゆけ。']],
+  post:[['封印の大魔導師オルド','封印の奥にいるのは、竜でも機械でも魔法でもない…'],['封印の大魔導師オルド','いや、まずはあやつじゃ。封印にひびを入れた、始祖の竜が目覚めかけておる。']]},
+ {id:'4-3',ch:4,boss:true,final:true,name:'目覚める始祖',opp:'始祖竜イグニス',fac:'dragon',partner:'D-58',level:'normal',life:12,charge:0,chal:'life5',coins:500,pickUR:true,
+  theme:'LRの始祖竜を中心にした最強のドラゴン。速攻と全体破壊に耐えよう',
+  cards:{'D-58':2,'D-50':2,'D-34':1,'D-05':2,'D-33':2,'D-30':2,'D-29':2,'D-20':2,'D-27':2,'D-38':2,'D-44':2,'D-16':2,'D-03':2,'D-53':1,'D-57':1,'D-09':1,'D-02':2},
+  pre:[['始祖竜イグニス','千年の封印、ついに砕ける。自由をこの手に…'],['始祖竜イグニス','邪魔をするな、小さき共鳴者よ。']],
+  post:[['始祖竜イグニス','…なるほど。これが、共鳴の力か。'],['始祖竜イグニス','だが気づいているか。封印の底から、もっと暗いものが這い上がってくるぞ。'],['ナレーション','封印の一番奥に、細いひびが走った。その向こうで、黒い魂がゆらめいている——'],['ナレーション','（つづく）']]},
+];
+
+/* --- ストーリーの進み具合 --- */
+const STV={sel:null,deck:null,talk:null,msg:''};
+const stageById=id=>STORY.find(x=>x.id===id);
+const sClear=id=>!!(SAVE.story&&SAVE.story.clear[id]);
+function chapterOpen(ch){return ch<4||['1-4','2-4','3-4'].every(sClear);}
+function stageOpen(st){if(!chapterOpen(st.ch))return false;const list=STORY.filter(x=>x.ch===st.ch),k=list.indexOf(st);return k===0||sClear(list[k-1].id);}
+function myPartner(){const d=STARTERS.find(x=>x.id===SAVE.starter)||STARTERS[0];return {id:d.partner,fac:d.fac,name:C[d.partner].name};}
+function talkFmt(l){const P=myPartner();const f=t=>String(t||'').replace(/\{PL\}/g,STORY_PL[P.fac]).replace(/\{PID\}/g,P.id).replace(/\{P\}/g,P.name);return [f(l[0]),f(l[1]),l[2]?f(l[2]):null];}
+function startTalk(lines,done,artId){STV.talk={lines,idx:0,done,artId};render();}
+function talkOv(){
+  const t=STV.talk;if(!t)return '';const [who,txt,pid]=talkFmt(t.lines[t.idx]);
+  const artId=pid||(who&&t.artId&&who!=='ナレーション'&&who!=='発掘者ドルク'?t.artId:null);
+  const art=artId&&ART[artId]?`<div class="talkart" style="background-image:url(${ART[artId]})" aria-hidden="true"></div>`:'';
+  return `<div class="ov talkov" data-act="talk-next"><div class="talkbox">${art}
+    ${who?`<div class="spk">${esc(who)}</div>`:''}<p class="${who==='ナレーション'||!who?'narr':''}">${esc(txt)}</p>
+    <div class="talkbtns"><span class="dm">${t.idx+1} / ${t.lines.length}</span><button class="btn sub" data-act="talk-skip">スキップ</button><button class="btn go" data-act="talk-next">${t.idx+1<t.lines.length?'次へ ▸':'閉じる'}</button></div></div></div>`;
+}
+function talkNext(skip){const t=STV.talk;if(!t)return;if(!skip&&t.idx+1<t.lines.length){t.idx++;render();return;}STV.talk=null;if(t.done)t.done();else render();}
+function openStory(){scr='story';STV.sel=null;STV.msg='';render();window.scrollTo(0,0);
+  if(!SAVE.story.pro){startTalk(STORY_PRO,()=>{SAVE.story.pro=true;storeSave();render();});}}
+const LVNAME={easy:'かんたん',normal:'ふつう',hard:'むずかしい'};
+function stageReward(st){return st.pickUR?`${st.coins}コイン＋好きなURを1枚`:`${st.coins}コイン＋${st.card?C[st.card].name:''}${st.shards?`かけら${st.shards}`:''}`;}
+function storyHTML(){
+  if(SAVE.story.urPending){
+    const urs=DB.filter(c=>c.rar==='UR');
+    return `<div class="top"><h2>報酬を選ぶ</h2></div><div class="box stack"><b>好きなURカードを1枚選んでください</b><span class="dm">最終ボスを倒した報酬です。選んだカードが1枚もらえます</span>
+      <div class="pickur">${urs.map(c=>`<div class="pickone">${cardUI(c,{mini:1,attrs:`data-act="story-pick" data-id="${c.id}"`})}<span class="dm">${esc(c.text||'')}</span></div>`).join('')}</div><span class="dm">カードをタップすると、その1枚に決まります</span></div>`;
+  }
+  const st=STV.sel&&stageById(STV.sel);
+  if(st){
+    const decks=myDecks().filter(d=>!deckError(d));if(!decks.some(d=>d.id===STV.deck))STV.deck=(decks.find(d=>d.id===setup.d[0])||decks[0]||{}).id;
+    const done=sClear(st.id),star=SAVE.story.star[st.id];
+    return `<div class="top"><button class="btn sub" data-act="story-back">戻る</button><h2>${esc(st.id)} ${esc(st.name)}</h2></div>
+    <div class="box stack stagebox">
+      ${st.partner&&ART[st.partner]?`<div class="stageart" style="background-image:url(${ART[st.partner]})" aria-hidden="true"></div>`:''}
+      <div><span class="dm">相手</span><br><b style="font-size:18px">${esc(st.opp)}</b>${st.boss?'<span class="ntag imp" style="margin-left:6px">ボス</span>':''}</div>
+      <div class="dm">${st.fac==='mirror'?'あなたが選んだデッキの写しを使う':`${FAC[st.fac]}・パートナー：${esc(C[st.partner].name)}`}／CPU：${LVNAME[st.level]}${st.life!==10?`／ライフ${st.life}`:''}${st.charge?`／チャージ${st.charge}枚から`:''}</div>
+      <p style="margin:0">${esc(st.theme)}</p>
+      <div>★ チャレンジ：${CHAL[st.chal]} ${star?'<b style="color:var(--gold)">達成済み</b>':'<span class="dm">（初めて達成で+50コイン）</span>'}</div>
+      <div>初回クリア報酬：${done?'<span class="dm">受け取り済み（2回目からは難易度に応じたコイン）</span>':esc(stageReward(st))}</div>
+    </div>
+    <div class="box stack"><b>使うデッキ</b>
+      ${decks.length?`<div class="deckpick">${decks.map(d=>`<button class="btn ${d.id===STV.deck?'go':'sub'}" data-act="story-deck" data-id="${esc(d.id)}">${esc(d.name)}<span class="dm">（${FAC[d.fac]}）</span></button>`).join('')}</div>`:'<span>使えるデッキがありません</span>'}
+      <button class="btn go bigbtn" data-act="story-start" ${decks.length?'':'disabled'}>挑戦する</button></div>`;
+  }
+  const P=myPartner();
+  return `<div class="top"><button class="btn sub" data-act="go-title">戻る</button><h2>ストーリー</h2></div>
+  ${STV.msg?`<div class="box">${esc(STV.msg)}</div>`:''}
+  <button class="btn sub" data-act="story-pro">プロローグを見る</button>
+  ${STORY_CH.map(ch=>{const list=STORY.filter(x=>x.ch===ch.id),open=chapterOpen(ch.id);
+    const nc=list.filter(x=>sClear(x.id)).length,ns=list.filter(x=>SAVE.story.star[x.id]).length;
+    return `<div class="box stack chapter ${ch.fac?FCLS[ch.fac]:''}"><div class="nh"><b>${esc(ch.name)}</b><span class="dm">${open?`クリア ${nc}/${list.length}　★ ${ns}/${list.length}`:'3人のボスを倒すと開きます'}</span></div>
+      ${open?list.map(x=>{const op=stageOpen(x),cl=sClear(x.id);
+        return `<button class="stagerow ${op?'':'lock'}" data-act="story-stage" data-id="${x.id}" ${op?'':'disabled'}><span class="sid">${x.id}</span><span class="sn">${esc(x.name)}${x.boss?'<span class="ntag imp">ボス</span>':''}<br><span class="dm">${op?esc(x.opp):'まだ挑戦できません'}</span></span><span class="sst">${op?(cl?'✔':'')+(SAVE.story.star[x.id]?'★':''):'🔒'}</span></button>`;}).join(''):''}
+    </div>`;}).join('')}
+  <p class="dm" style="text-align:center">あなたのパートナー：${esc(P.name)}</p>`;
+}
+function startStage(st,deck){
+  setup.mode='cpu';setup.level=st.level;showRules=false;
+  const od=st.fac==='mirror'?{id:'mirror',name:'影',fac:deck.fac,partner:deck.partner,cards:{...deck.cards}}:{id:'story-'+st.id,name:st.opp,fac:st.fac,partner:st.partner,cards:st.cards};
+  newGame([deck,od],{onSetup:g=>{g.story=st.id;g.oppName=st.opp;g.p[1].life=st.life;for(let k=0;k<st.charge&&g.p[1].deck.length;k++)g.p[1].charge.push(g.p[1].deck.shift());}});
+}
+function storyWin(){
+  const st=stageById(G.story);if(!st)return;const ss=SAVE.story,pm=G.p[1-G.cpu],first=!ss.clear[st.id];
+  const ok=st.chal==='life5'?pm.life>=5:(st.chal==='turn12'?pm.turns<=12:!pm.finUsed);
+  const r={first,coins:first?st.coins:(REWARD[st.level]||0),card:null,shards:0,chal:ok,newStar:ok&&!ss.star[st.id],pick:false};
+  if(first){if(st.card){SAVE.owned[st.card]=owned(st.card)+1;r.card=st.card;}if(st.shards){SAVE.shards+=st.shards;r.shards=st.shards;}if(st.pickUR){ss.urPending=true;r.pick=true;}}
+  if(r.newStar){ss.star[st.id]=true;r.coins+=50;}
+  ss.clear[st.id]=true;SAVE.coins+=r.coins;G.rewarded=r.coins;G.storyRes=r;storeSave();track('story');
+}
+function storyResultHTML(){
+  const st=stageById(G.story),r=G.storyRes,won=G.over.w!==G.cpu;
+  return `<div class="ov"><div class="ovbox"><h1 class="${won?FCLS[G.p[1-G.cpu].fac]:''}">${won?'勝利！':'敗北…'}</h1>
+    <p>${esc(st.id)} ${esc(st.name)}　vs ${esc(st.opp)}</p><p class="dm">${fmtLog(G.over.reason)}</p>
+    ${won&&r?`<p class="reward">+${r.coins} コイン（所持 ${SAVE.coins}）</p>
+      ${r.card?`<p class="reward">カード「${esc(C[r.card].name)}」を手に入れた！</p>`:''}${r.shards?`<p class="reward">かけら +${r.shards}</p>`:''}
+      ${r.pick?'<p class="reward">好きなURを1枚選べます！</p>':''}
+      <p>★ ${esc(CHAL[st.chal])}：${r.chal?(r.newStar?'<b style="color:var(--gold)">達成！ +50コイン</b>':'達成'):'<span class="dm">未達成</span>'}</p>
+      <button class="btn go bigbtn" data-act="story-post">続きを見る</button>`
+    :`<p class="dm">何度でも挑戦できます。デッキを変えるのもおすすめ</p><button class="btn go bigbtn" data-act="story-retry">もう一度挑戦</button>`}
+    ${won?'<button class="btn sub" data-act="story-retry">もう一度戦う</button>':''}
+    <button class="btn sub" data-act="go-story">ストーリーへ</button>
+    <button class="btn sub" data-act="showlog">対戦ログを見る</button></div></div>`;
+}
 /* ===== お知らせ（パッチノート）v0.44 =====
    遊ぶ人向けの更新内容。新しいものを先頭に足す。important:true は更新後の起動時に自動で表示する */
 const NEWS=[
+ {v:'0.45',date:'2026-10-22',title:'ストーリーモードが始まりました',items:['タイトルの「ストーリー」から遊べます。竜・機械・魔法の三つの地を巡り、各章のボスに挑みます（全15ステージ）','初めて勝つとコインとカードがもらえます。各ステージの★チャレンジを達成すると、さらに+50コイン','デイリーミッションに「ストーリーで1回勝つ」が加わりました']},
  {v:'0.44',date:'2026-10-22',title:'お知らせを見られるようになりました',items:['タイトルの「お知らせ」から、ゲームの更新内容を見られます','新しいお知らせがあると「NEW」が付きます']},
  {v:'0.43',date:'2026-10-22',important:true,title:'速攻・移動のモンスターは本体を狙いやすく',items:['速攻か移動を持つモンスターは、自分の正面が空いていれば、相手のセンターにモンスターがいても本体を攻撃できます（1体で攻撃するとき）','連携攻撃で本体を狙えるのは、相手のセンターが空いているときだけです']},
  {v:'0.42',date:'2026-10-22',important:true,title:'本体への攻撃ルールが変わりました／対戦ログ',items:['相手の本体を攻撃できるのは、相手のセンターが空いているときだけになりました（センターが「門」になります。例外は0.43を見てください）','対戦中、画面下のログをタップすると、その対戦のログを全部見られます。対戦後の画面からも見られます']},
@@ -726,7 +938,7 @@ const PHASES=[['draw','ドロー'],['charge','チャージ'],['main','メイン'
 /* ===== 対戦エンジン ===== */
 const pn=i=>`§${i}§`;
 const fmtLog=l=>esc(l).replace(/§(\d)§/g,(m,i)=>esc(pname(+i)));
-function pname(i){const who=NET.active?(i===NET.me?'あなた':'相手'):(G.cpu==null?`P${i+1}`:(i===G.cpu?'CPU':'あなた'));return `${who}（${FAC[G.p[i].fac]}）`}
+function pname(i){const who=NET.active?(i===NET.me?'あなた':'相手'):(G.cpu==null?`P${i+1}`:(i===G.cpu?(G.oppName||'CPU'):'あなた'));return `${who}（${FAC[G.p[i].fac]}）`}
 /* 対戦ログ：G.log は画面下の2行用（最新40件）。BLOG はこの対戦の全部のログ（v0.42） */
 let BLOG=[],BLOG_N=0,showLog=false;
 function log(t){G.log.push(t);if(G.log.length>40)G.log.shift();G.logN=(G.logN||0)+1;if(!SIM){BLOG.push(t);BLOG_N=G.logN;}}
@@ -736,11 +948,12 @@ function makePlayer(deck,i){
   return {i,fac:deck.fac,life:10,deck:list,hand:list.splice(0,5),charge:[],grave:[],energy:0,turns:0,field:[null,null,null],
     buddy:'zone',buddyCalled:false,finUsed:false,barrier:false,spells:0,buddyId:deck.partner};
 }
-function newGame(decks){
+function newGame(decks,opt){
   BLOG=[];BLOG_N=0;showLog=false;
   G={p:[makePlayer(decks[0],0),makePlayer(decks[1],1)],log:[],over:null,passing:true,phase:'draw',cpu:setup.mode==='cpu'?1:null,level:setup.level};
   G.cur=setup.forceFirst!=null?setup.forceFirst:(Math.random()<.5?0:1);setup.forceFirst=null;G.first=G.cur;sel=null;scr='game';RESULT_DONE=false;
   if(G.cpu!=null&&G.level==='hard'){const c=G.p[G.cpu];c.charge.push(c.deck.shift());log('むずかしいCPUはチャージ1枚からスタート');}
+  if(opt&&opt.onSetup)opt.onSetup(G);
   log(`${pn(G.cur)}が先攻`);nextTurn();
 }
 const me=()=>G.p[G.cur], op=()=>G.p[1-G.cur];
@@ -774,7 +987,7 @@ function endTurn(){
 }
 function gameOver(w,reason){
   if(!G.over){G.over={w,reason};
-    if(!SIM&&G.cpu!=null&&w!==G.cpu&&!G.rewarded){G.rewarded=REWARD[G.level]||0;SAVE.coins+=G.rewarded;storeSave();}
+    if(!SIM&&G.cpu!=null&&w!==G.cpu&&!G.rewarded){if(G.story)storyWin();else{G.rewarded=REWARD[G.level]||0;SAVE.coins+=G.rewarded;storeSave();}}
     if(!SIM&&G.tutorial&&!SAVE.tutDone){SAVE.tutDone=true;G.tutBonus=100;SAVE.coins+=100;storeSave();}
     if(!SIM)recordResult();
     if(!SIM){const mine=G.cpu!=null?1-G.cpu:(NET.active?NET.me:w);sfx(w===mine?'win':'lose');if(G.rewarded)setTimeout(()=>sfx('coin'),900);}}
@@ -1367,6 +1580,7 @@ const MISSIONS=[
  {id:'dmg15',text:'相手に合計15ダメージを与える',goal:15,ev:'dmg',reward:60},
  {id:'pack1',text:'パックを1つ開ける',goal:1,ev:'pack',reward:30},
  {id:'online1',text:'通信対戦を1回遊ぶ',goal:1,ev:'online',reward:60},
+ {id:'story1',text:'ストーリーで1回勝つ',goal:1,ev:'story',reward:60},
 ];
 const todayStr=()=>{const d=new Date();return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;};
 /* 「〇〇のデッキで勝つ」は、その陣営の使えるデッキがあるときだけ出す */
@@ -1691,6 +1905,7 @@ function deckOptions(selId,opp){
 function titleHTML(){
   return `<div class="hero"><h1>レゾナンス</h1><p>魂を封じたカードで戦う、カードゲーム</p></div>
   <div class="stack">
+    <button class="btn go bigbtn" data-act="go-story">ストーリー</button>
     <button class="btn go bigbtn" data-act="go-setup">対戦する</button>
     <button class="btn bigbtn" data-act="go-decks">デッキを作る</button>
     <button class="btn bigbtn" data-act="go-online">通信対戦</button>
@@ -1801,14 +2016,15 @@ function render(){
   if(NET.active&&scr==='game')netSync();
   const app=$('#app'),ov=$('#ov');
   if(scr!=='game'){
-    app.className='page';ov.innerHTML=rulesOv();
-    app.innerHTML={title:titleHTML,setup:setupHTML,decks:decksHTML,newdeck:newDeckHTML,edit:editHTML,shop:shopHTML,col:colHTML,online:onlineHTML,pick:pickHTML,mis:missionHTML,tut:tutHTML,save:saveHTML,news:newsHTML}[scr]();
+    app.className='page';ov.innerHTML=scr==='story'&&STV.talk?talkOv():rulesOv();
+    app.innerHTML={title:titleHTML,setup:setupHTML,decks:decksHTML,newdeck:newDeckHTML,edit:editHTML,shop:shopHTML,col:colHTML,online:onlineHTML,pick:pickHTML,mis:missionHTML,tut:tutHTML,save:saveHTML,news:newsHTML,story:storyHTML}[scr]();
     return;
   }
   app.className='game';
   if(G.over){
     app.innerHTML='';
     if(showLog){ov.innerHTML=logOv();const ls=ov.querySelector('.logscroll');if(ls)ls.scrollTop=ls.scrollHeight;return;}
+    if(G.story){ov.innerHTML=storyResultHTML();return;}
     ov.innerHTML=`<div class="ov"><div class="ovbox"><h1 class="${FCLS[G.p[G.over.w].fac]}">${pname(G.over.w)}の勝ち</h1>
       <p>${fmtLog(G.over.reason)}</p>
       ${G.tutBonus?`<p class="reward">チュートリアル完了ボーナス +${G.tutBonus} コイン！</p>`:''}
@@ -1862,6 +2078,18 @@ document.addEventListener('click',e=>{
   if(a==='go-mis'){scr='mis';render();window.scrollTo(0,0);return;}
   if(a==='go-save'){openSaveScreen();return;}
   if(a==='go-news'){openNews();return;}
+  if(a==='go-story'){netLeave();G=null;showLog=false;STV.talk=null;openStory();return;}
+  if(a==='talk-next'){talkNext(false);return;}
+  if(a==='talk-skip'){talkNext(true);return;}
+  if(a==='story-pro'){startTalk(STORY_PRO,()=>{SAVE.story.pro=true;storeSave();render();});return;}
+  if(a==='story-stage'){const st=stageById(el.dataset.id);if(st&&stageOpen(st)){STV.sel=st.id;render();window.scrollTo(0,0);}return;}
+  if(a==='story-back'){STV.sel=null;render();return;}
+  if(a==='story-deck'){STV.deck=el.dataset.id;render();return;}
+  if(a==='story-pick'){const id=el.dataset.id;if(SAVE.story.urPending&&C[id]&&C[id].rar==='UR'){SAVE.owned[id]=owned(id)+1;SAVE.story.urPending=false;storeSave();STV.msg=`「${C[id].name}」を手に入れました！`;STV.sel=null;render();window.scrollTo(0,0);}return;}
+  if(a==='story-start'){const st=stageById(STV.sel),d=deckById(STV.deck);if(!st||!d||deckError(d))return;setup.d[0]=d.id;
+    startTalk(st.pre,()=>startStage(st,d),st.partner);return;}
+  if(a==='story-retry'){const st=G&&stageById(G.story),d=deckById(STV.deck);if(st&&d&&!deckError(d)){showLog=false;startStage(st,d);}return;}
+  if(a==='story-post'){const st=G&&stageById(G.story);if(!st)return;G=null;scr='story';STV.sel=null;startTalk(st.post,()=>{render();window.scrollTo(0,0);},st.partner);return;}
   if(a==='sv-copy'){const done=()=>{el.textContent='コピーしました';};try{navigator.clipboard.writeText(SV.code).then(done,()=>{el.textContent='長押しでコピー';});}catch(e){el.textContent='長押しでコピー';}return;}
   if(a==='sv-share'){try{navigator.share({title:'レゾナンス 引き継ぎコード',text:SV.code}).catch(()=>{});}catch(e){}return;}
   if(a==='sv-read'){SV.msg='読み込んでいます…';render();readSaveCode(SV.input).then(r=>{if(r.err){SV.msg=r.err;}else{SV.pending=r;SV.msg='';}if(scr==='save')render();});return;}
@@ -1920,7 +2148,7 @@ document.addEventListener('click',e=>{
     if(setup.d[1]==='random'){const pool=allDecks().filter(d=>!deckError(d,true));d1=pool[Math.floor(Math.random()*pool.length)];}
     newGame([deckById(setup.d[0]),d1]);return;}
   if(!G)return;
-  if(a==='quit'){netLeave();G=null;scr='title';showRules=false;render();return;}
+  if(a==='quit'){const story=G&&G.story;netLeave();G=null;scr=story?'story':'title';showRules=false;render();return;}
   if(a==='begin'){startTurn();return;}
   if(G.over||G.passing||cpuNow()||netWait())return;
   if(a==='cancel'){sel=null;render();return;}
