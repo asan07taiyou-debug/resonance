@@ -250,6 +250,15 @@ h1,h2{font-family:"Dela Gothic One","Hiragino Sans","Noto Sans JP",sans-serif;fo
 .slot,.pzone{position:relative}
 .slot:has(.sel),.pzone.sel{z-index:4}
 @media (prefers-reduced-motion: reduce){.game .cardui,.hand .cardui.sel,.slot .cardui.sel,.pzone.sel .cardui{transform:none;transition:none}}
+
+.backupnote{display:flex;flex-direction:column;gap:6px;border:2px solid var(--gold)}
+.backupnote span{font-size:13px}
+.backupnote .btnrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rotatehint{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:color-mix(in srgb,var(--table) 94%,transparent);text-align:center;padding:20px}
+.rotatehint .ic{font-size:44px;animation:rot 1.6s ease-in-out infinite}
+@keyframes rot{0%,30%{transform:rotate(-90deg)}60%,100%{transform:rotate(0)}}
+.rotatehint b{font-size:18px}
+@media (prefers-reduced-motion: reduce){.rotatehint .ic{animation:none}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:7px 10px;display:flex;gap:10px;align-items:center;min-height:50px}
 .panel .txt{flex:1;font-size:12px;line-height:1.4}
 .panel .txt b{font-size:13px}
@@ -777,7 +786,7 @@ function normSave(v){if(typeof v.shards!=='number')v.shards=0;if(!v.stats)v.stat
   if(!v.ach||typeof v.ach!=='object'){const st=v.stats,w=st.cpu.easy[0]+st.cpu.normal[0]+st.cpu.hard[0];
     v.ach={cnt:{win:w,winHardest:st.cpu.hard[0],win_dragon:st.fac.dragon[0],win_machine:st.fac.machine[0],win_magic:st.fac.magic[0],online:st.online[0]+st.online[1]},got:{}};}
   if(!v.ach.cnt||typeof v.ach.cnt!=='object')v.ach.cnt={};if(!v.ach.got||typeof v.ach.got!=='object')v.ach.got={};
-  if(!v.login||typeof v.login!=='object')v.login={date:'',streak:0};if(typeof v.login.best!=='number')v.login.best=v.login.streak||0;if(typeof v.streak!=='number')v.streak=0;if(!v.deckStats||typeof v.deckStats!=='object')v.deckStats={};if(typeof v.streakBest!=='number')v.streakBest=0;if(!v.story||typeof v.story!=='object')v.story={};const S=v.story;if(!S.clear||typeof S.clear!=='object')S.clear={};if(!S.star||typeof S.star!=='object')S.star={};S.pro=!!S.pro;S.urPending=!!S.urPending;return v;}
+  if(!v.login||typeof v.login!=='object')v.login={date:'',streak:0};if(typeof v.login.best!=='number')v.login.best=v.login.streak||0;if(typeof v.streak!=='number')v.streak=0;if(!v.deckStats||typeof v.deckStats!=='object')v.deckStats={};if(typeof v.backupAt!=='number')v.backupAt=0;if(typeof v.backupRare!=='number')v.backupRare=0;if(typeof v.backupSnooze!=='number')v.backupSnooze=0;if(typeof v.streakBest!=='number')v.streakBest=0;if(!v.story||typeof v.story!=='object')v.story={};const S=v.story;if(!S.clear||typeof S.clear!=='object')S.clear={};if(!S.star||typeof S.star!=='object')S.star={};S.pro=!!S.pro;S.urPending=!!S.urPending;return v;}
 function loadSave(){try{const v=JSON.parse(localStorage.getItem(SKEY)||'null');if(v&&typeof v.coins==='number'&&v.owned)return normSave(v);}catch(e){}return normSave(freshSave());}
 function storeSave(){try{localStorage.setItem(SKEY,JSON.stringify(SAVE));return true;}catch(e){return false;}}
 let SAVE=loadSave();storeSave();
@@ -834,8 +843,9 @@ function saveHTML(){
   ${SAVE.starter?`<div class="box stack"><b>引き継ぎコードを作る</b>
     <span class="dm">コイン・カード・かけら・デッキ・戦績を1つのコードにまとめます。メモやLINEなどに保存しておくと、機種変更やデータが消えたときに、別の端末で続きから遊べます。</span>
     <span class="dm">コードは「今の状態の写し」です。カードが増えたら作り直して保存し直してください。</span>
+    <span class="dm">${SAVE.backupAt?`最後に保存したのは ${esc(new Date(SAVE.backupAt).toLocaleDateString('ja-JP'))}`:'まだコードを保存した記録がありません'}${PERSIST===true?'　／　この端末では、データが消されにくい設定になっています':''}</span>
     ${SV.code?`<textarea class="savecode" readonly onclick="this.select()">${esc(SV.code)}</textarea>
-      <div class="codebox"><button class="btn go" data-act="sv-copy">コピー</button>${navigator.share?'<button class="btn" data-act="sv-share">共有</button>':''}</div>`
+      <div class="codebox"><button class="btn go" data-act="sv-copy">コピー</button>${navigator.share?'<button class="btn" data-act="sv-share">共有</button>':''}<button class="btn sub" data-act="sv-saved">自分で保存した</button></div>`
       :`<span class="dm">${SV.busy?'コードを作っています…':''}</span>`}
   </div>`:''}
   <div class="box stack"><b>引き継ぎコードで続きから遊ぶ</b>
@@ -877,7 +887,7 @@ function deckError(d,free){
 }
 
 /* ===== 状態 ===== */
-const APP_VER='0.59';
+const APP_VER='0.62';
 /* ===== ストーリーモード（v0.45） ===== */
 const STORY_PRO=[
  ['ナレーション','はるか昔、ある文明が、強大な存在の「魂」をカードに封じ込めた。'],
@@ -1305,7 +1315,7 @@ function graveOv(){if(!sel||sel.kind!=='grave'||!G)return '';const pl=sel.side==
     <div class="cgrid">${pl.grave.map(id=>`<div class="cgcell">${cardUI(C[id],{tag:'div',mini:1})}</div>`).join('')||'<p class="dm">まだありません</p>'}</div>
     <button class="btn sub" data-act="cancel">閉じる</button></div></div>`;}
 /* ===== 横持ちの対戦画面（v0.57）：相手4：自分6。手書きの配置案どおり ===== */
-const isLand=()=>typeof matchMedia==='function'&&matchMedia('(orientation: landscape)').matches&&innerWidth>=560;
+const isLand=()=>typeof matchMedia==='function'&&matchMedia('(orientation: landscape)').matches&&innerWidth>=560&&innerHeight>=500;
 let LAND_NOW=null;
 function midHTML(){if(!sel&&autoWillEnd())return autoLine();const h=selHint();return h?`<div class="mid sel">${h}</div>`:`<div class="mid${NET.active?' online':''}" data-act="showlog" role="button" tabindex="0" aria-label="対戦ログを見る"><span class="logopen">ログ</span>${NET.active?'<button class="stamppill" data-act="stamp-open" aria-label="スタンプを送る">💬 スタンプ</button>':''}${G.log.slice(-2).map(l=>`<div>${fmtLog(l)}</div>`).join('')}</div>`;}
 function landHTML(){
@@ -1332,7 +1342,7 @@ function landHTML(){
     <div class="lside me">${infoHTML(p,true)}</div>
   </div></div>`;
 }
-addEventListener('resize',()=>{if(scr==='game'&&G&&isLand()!==LAND_NOW)render();});
+addEventListener('resize',()=>{if(scr==='game'&&G&&(isLand()!==LAND_NOW||phoneLand()!==PL_NOW))render();});
 
 /* ===== 自動ターン終了（v0.58）：することが何もないときは、少し待ってから自動でターンを終える ===== */
 const AUTO_MS=1600;let AUTO_T=null,AUTO_STOP=null;
@@ -1362,9 +1372,36 @@ function battleBg(id){
   if(id&&ART[id]){nxt.style.backgroundImage=`url(${ART[id]})`;nxt.classList.add('on');}else nxt.classList.remove('on');
   cur.classList.remove('on');BBG_I=1-BBG_I;
 }
+
+/* ===== データを守る（v0.61）：消されにくくする設定と、引き継ぎコードのお知らせ ===== */
+let PERSIST=null;
+function askPersist(){try{if(navigator.storage&&navigator.storage.persist){navigator.storage.persisted().then(v=>{if(v){PERSIST=true;return;}return navigator.storage.persist().then(r=>{PERSIST=!!r;});}).catch(()=>{});}}catch(e){}}
+const DAY=86400000;
+const rareOwned=()=>DB.filter(c=>(c.rar==='UR'||c.rar==='LR')&&owned(c.id)>0).length;
+function backupReason(){
+  if(!SAVE.starter)return null;const now=Date.now();
+  if((SAVE.backupSnooze||0)>now)return null;
+  if(rareOwned()>(SAVE.backupRare||0))return 'URやLRのカードを手に入れました。消えてしまう前に、引き継ぎコードを作っておきましょう';
+  const kinds=DB.filter(c=>owned(c.id)>0).length;
+  if(!SAVE.backupAt)return kinds>=25?'カードが集まってきました。機種変更やデータが消えたときのために、引き継ぎコードを作っておきましょう':null;
+  if(now-SAVE.backupAt>7*DAY)return `最後に引き継ぎコードを作ってから${Math.floor((now-SAVE.backupAt)/DAY)}日たちました。新しいコードを作っておきましょう`;
+  return null;
+}
+function backupBanner(){const r=backupReason();return r?`<div class="box backupnote"><b>💾 データのバックアップ</b><span>${esc(r)}</span>
+  <div class="btnrow"><button class="btn go" data-act="go-save">コードを作る</button><button class="btn sub" data-act="backup-later">あとで</button></div></div>`:'';}
+function markBackup(){SAVE.backupAt=Date.now();SAVE.backupRare=rareOwned();SAVE.backupSnooze=0;storeSave();}
+/* スマホを横にしたとき（高さが足りない）は、縦向きで遊ぶよう案内する */
+const phoneLand=()=>typeof matchMedia==='function'&&matchMedia('(orientation: landscape)').matches&&innerHeight<500;
+let PL_NOW=null,RH=null;
+function rotateHint(on){if(typeof document.createElement!=='function')return;
+  if(on&&!RH){RH=document.createElement('div');RH.className='rotatehint';RH.setAttribute('role','alert');RH.innerHTML='<span class="ic">📱</span><b>スマホは縦向きで遊んでください</b><span>横向きの画面は、タブレットやパソコン用です</span>';document.body.appendChild(RH);}
+  else if(!on&&RH){RH.remove();RH=null;}}
 /* ===== お知らせ（パッチノート）v0.44 =====
    遊ぶ人向けの更新内容。新しいものを先頭に足す。important:true は更新後の起動時に自動で表示する */
 const NEWS=[
+ {v:'0.62',date:'2026-10-22',title:'手札のスクロールが戻らないように',items:['手札を横にスクロールしてからカードをタップしても、左端に戻されないようにしました']},
+ {v:'0.61',date:'2026-10-22',title:'データを守る機能・横向きの表示',items:['ブラウザに「このゲームのデータは消さないで」とお願いするようにしました（対応しているブラウザだけ）','しばらく引き継ぎコードを作っていないときや、URやLRを手に入れたときは、タイトルに「コードを作っておきましょう」と出ます','スマホを横にしたときは「縦向きで遊んでください」と表示するようにしました。横向きの画面はタブレットやパソコン用です']},
+ {v:'0.60',date:'2026-10-22',title:'通信対戦でも相手の演出が見えるように',items:['通信対戦で、相手がモンスターを出す・攻撃する・呪文を使うときの演出（カードが中央に出て吸いこまれる、ダメージ、破壊など）が、自分の画面でも出るようになりました','カットイン、背景のパートナー、選んだカードの強調、自動ターン終了は、通信対戦でもそのまま使えます']},
  {v:'0.59',date:'2026-10-22',title:'選んだカードが分かりやすく・背景にパートナー',items:['カードをタップして選ぶと、少し大きくなって金色に光るようにしました（手札は少し上に浮きます）','対戦中の背景に、そのターンのプレイヤーのパートナーがうっすら表示されます。ターンが変わると切りかわります']},
  {v:'0.58',date:'2026-10-22',title:'自動ターン終了',items:['使えるカードも、攻撃や移動ができるモンスターもないときは、少し待ってから自動でターンが終わります','盤面の下の行に「まもなく自動でターン終了します」と出ている間に「止める」を押すと、そのターンは自動で終わりません','メニューの「自動ターン終了」でオン/オフを切りかえられます']},
  {v:'0.57',date:'2026-10-22',title:'横持ちに対応しました',items:['スマホを横にしたり、タブレット・パソコンで遊んだりすると、横長の画面用の配置になります（相手の場：自分の場＝4：6）','手札は下、チャージゾーンは左、ライフ・ソウル・「ターン終了」は右下のプレイヤー表示にあります']},
@@ -1851,6 +1888,7 @@ function adopt(st,sq){
   if(!NET.active){NET.active=true;NET.me=1;}
   if(!G.over){if(RESULT_DONE||!NET.started){RESULT_DONE=false;NET.started=true;track('online');}}else recordResult();
   scr='game';sel=null;
+  replayNetFx(st);
   if(G.cur===NET.me&&G.needStart&&!G.over){G.needStart=false;startTurn();}else render();
 }
 function netPeers(ch){
@@ -2006,7 +2044,13 @@ function soundHTML(){
 
 /* ===== 演出 ===== */
 const FXQ=[];
-function fx(e){if(!SIM&&scr==='game')FXQ.push(e);}
+function fx(e){if(!SIM&&scr==='game'){FXQ.push(e);
+  /* 通信対戦：演出を盤面の情報にのせて、相手の画面でも同じ演出を出す（v0.60） */
+  if(NET.active&&G){G.nfx=G.nfx||[];G.nfxN=(G.nfxN||0)+1;G.nfx.push({...e,n:G.nfxN});if(G.nfx.length>40)G.nfx.splice(0,G.nfx.length-40);NET.fxSeen=G.nfxN;}}}
+const NFX_SFX={summon:'summon',attack:'attack',destroy:'destroy',dmg:'damage',heal:'heal',block:'block'};
+function replayNetFx(st){const seen=NET.fxSeen||0,list=(st.nfx||[]).filter(e=>e.n>seen);if(!list.length)return;NET.fxSeen=Math.max(...list.map(e=>e.n));
+  const sounds=new Set();list.forEach(e=>{const{n,...x}=e;FXQ.push(x);if(x.t==='cast')sounds.add(C[x.id]&&C[x.id].type==='finisher'?'burst':'spell');else if(NFX_SFX[x.t])sounds.add(NFX_SFX[x.t]);});
+  let d=0;sounds.forEach(k=>{setTimeout(()=>sfx(k),d);d+=120;});}
 function flushFx(){
   if(!FXQ.length)return;const list=FXQ.splice(0);
   if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
@@ -2431,6 +2475,7 @@ function deckOptions(selId,opp){
 }
 function titleHTML(){
   return `<div class="hero"><h1>レゾナンス</h1><p>魂を封じたカードで戦う、カードゲーム</p></div>
+  ${backupBanner()}
   <div class="stack">
     <button class="btn go bigbtn" data-act="go-story">ストーリー</button>
     <button class="btn go bigbtn" data-act="go-setup">対戦する</button>
@@ -2548,14 +2593,14 @@ function render(){
   if(NET.active&&scr==='game')netSync();
   const app=$('#app'),ov=$('#ov');
   if(scr!=='game'){
-    battleBg(null);
+    battleBg(null);rotateHint(false);
     if(scr==='title')checkLogin();
     if(ZOOM&&scr!=='col'&&scr!=='edit')ZOOM=null;
     app.className='page';ov.innerHTML=ZOOM?zoomOv():scr==='story'&&STV.talk?talkOv():(scr==='title'&&LOGIN_POP?loginOv():rulesOv());
     app.innerHTML={title:titleHTML,setup:setupHTML,decks:decksHTML,newdeck:newDeckHTML,edit:editHTML,shop:shopHTML,col:colHTML,online:onlineHTML,pick:pickHTML,mis:missionHTML,tut:tutHTML,save:saveHTML,news:newsHTML,story:storyHTML}[scr]();
     return;
   }
-  LAND_NOW=isLand();app.className='game'+(LAND_NOW?' land':'');
+  LAND_NOW=isLand();PL_NOW=phoneLand();app.className='game'+(LAND_NOW?' land':'');
   battleBg(G&&!G.over&&!G.passing?G.p[G.cur].buddyId:null);
   if(G.over){
     app.innerHTML='';
@@ -2583,7 +2628,11 @@ function render(){
     return;
   }
   ov.innerHTML=showLog?logOv():(ZOOM?zoomOv():(CONF?confOv():(sel&&sel.kind==='grave'?graveOv():rulesOv())));
-  app.innerHTML=LAND_NOW?`${landHTML()}${stampHTML()}`:`<div class="board">${boardHTML()}</div><div class="dock">${dockHTML()}</div>${stampHTML()}`;
+  /* 描き直しでスクロールが戻らないように、手札と盤面のスクロール位置を覚えておく（v0.62） */
+  const keepSc=['.hand','.board','.lfield'].map(q=>{const e=app.querySelector(q);return e?[q,e.scrollLeft,e.scrollTop]:null;}).filter(Boolean);
+  app.innerHTML=(LAND_NOW?`${landHTML()}${stampHTML()}`:`<div class="board">${boardHTML()}</div><div class="dock">${dockHTML()}</div>${stampHTML()}`);
+  keepSc.forEach(([q,x,y])=>{const e=app.querySelector(q);if(e){e.scrollLeft=x;e.scrollTop=y;}});
+  rotateHint(PL_NOW);
   if(showLog){const ls=ov.querySelector('.logscroll');if(ls)ls.scrollTop=ls.scrollHeight;}
   {const tk=`${G.cur}-${G.p[G.cur].turns}`;if(tk!==LAST_TURN&&G.p[G.cur].turns>0){LAST_TURN=tk;turnCutin();}}
   scheduleAutoEnd();
@@ -2641,13 +2690,15 @@ document.addEventListener('click',e=>{
     startTalk(st.pre,()=>startStage(st,d),st.partner);return;}
   if(a==='story-retry'){const st=G&&stageById(G.story),d=deckById(STV.deck);if(st&&d&&!deckError(d)){showLog=false;startStage(st,d);}return;}
   if(a==='story-post'){const st=G&&stageById(G.story);if(!st)return;G=null;scr='story';STV.sel=null;startTalk(st.post,()=>{render();window.scrollTo(0,0);},st.partner);return;}
-  if(a==='sv-copy'){const done=()=>{el.textContent='コピーしました';};try{navigator.clipboard.writeText(SV.code).then(done,()=>{el.textContent='長押しでコピー';});}catch(e){el.textContent='長押しでコピー';}return;}
-  if(a==='sv-share'){try{navigator.share({title:'レゾナンス 引き継ぎコード',text:SV.code}).catch(()=>{});}catch(e){}return;}
+  if(a==='sv-copy'){const done=()=>{el.textContent='コピーしました';markBackup();};try{navigator.clipboard.writeText(SV.code).then(done,()=>{el.textContent='長押しでコピー';});}catch(e){el.textContent='長押しでコピー';}return;}
+  if(a==='sv-share'){try{navigator.share({title:'レゾナンス 引き継ぎコード',text:SV.code}).then(()=>markBackup()).catch(()=>{});}catch(e){}return;}
+  if(a==='backup-later'){SAVE.backupSnooze=Date.now()+DAY;storeSave();render();return;}
+  if(a==='sv-saved'){markBackup();SV.msg='保存したことを記録しました';render();return;}
   if(a==='sv-read'){SV.msg='読み込んでいます…';render();readSaveCode(SV.input).then(r=>{if(r.err){SV.msg=r.err;}else{SV.pending=r;SV.msg='';}if(scr==='save')render();});return;}
   if(a==='sv-cancel'){SV.pending=null;SV.msg='';render();return;}
   if(a==='sv-apply'){const p=SV.pending;if(!p)return;SAVE=p.save;MY=p.decks;topUpStarter();
     if(!storeSave()||!saveDecks(MY)){SV.msg='保存できませんでした。端末の空き容量を確認してください';render();return;}
-    setup.d[0]=SAVE.starter;NET.deckId=SAVE.starter;SV.input='';SV.pending=null;
+    setup.d[0]=SAVE.starter;NET.deckId=SAVE.starter;SV.input='';SV.pending=null;markBackup();
     if(SAVE.starter){openSaveScreen();SV.msg='引き継ぎました！続きから遊べます';render();}else{SV.msg='引き継ぎました';scr='pick';render();}return;}
   if(a==='ach-claim'){const x=ACH.find(q=>q.id===el.dataset.id);if(x&&!SAVE.ach.got[x.id]&&achVal(x)>=achGoal(x)){SAVE.ach.got[x.id]=true;SAVE.coins+=x.reward;storeSave();sfx('coin');}render();return;}
   if(a==='login-close'){LOGIN_POP=null;render();return;}
@@ -2693,7 +2744,7 @@ document.addEventListener('click',e=>{
     if(!ok)alert('この端末に保存できませんでした。ページを閉じるとデッキは消えます。');
     return;
   }
-  if(a==='splash-go'){$('#ov').innerHTML='';sfx('turn');
+  if(a==='splash-go'){$('#ov').innerHTML='';sfx('turn');askPersist();
     /* ルール変更など大事なお知らせが未読なら、起動時に一度だけ見せる */
     if(SAVE.starter&&newsUnread().some(n=>n.important)){openNews();return;}
     scr=SAVE.starter?'title':'pick';render();window.scrollTo(0,0);return;}
