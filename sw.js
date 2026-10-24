@@ -1,5 +1,5 @@
 // ソウルアリーナ：オフライン対応用サービスワーカー
-const VERSION='resonance-v0.68';
+const VERSION='resonance-v0.69';
 const ICON_V='0.68'; // アイコンを変えたら、この数字と index.html・manifest.webmanifest の ?v= をそろえて上げる
 const CORE=['./','./index.html','./manifest.webmanifest',
   './icon-192.png?v='+ICON_V,'./icon-512.png?v='+ICON_V,'./icon-maskable-512.png?v='+ICON_V,'./apple-touch-icon.png?v='+ICON_V];
@@ -14,8 +14,9 @@ self.addEventListener('fetch',e=>{
   if(req.mode==='navigate'||(same&&url.pathname.endsWith('.html'))){e.respondWith(netFirst(req,'./index.html'));return;}
   // アプリの設定とアイコンも「まずネット」：アイコンや名前を変えたときに、古いものが残らないように
   if(same&&(url.pathname.endsWith('.webmanifest')||url.pathname.endsWith('.png'))){e.respondWith(netFirst(req));return;}
-  // それ以外（フォント・通信ライブラリ）は「まずキャッシュ」
-  if(url.protocol.startsWith('http')){
+  // フォント・通信ライブラリ・Firebaseの読み込みファイルだけ「まずキャッシュ」。Googleのログインやデータの通信は保存せず、そのままネットへ
+  const cacheable=['fonts.googleapis.com','fonts.gstatic.com','cdn.jsdelivr.net'].includes(url.hostname)||(url.hostname==='www.gstatic.com'&&url.pathname.startsWith('/firebasejs/'));
+  if(cacheable){
     e.respondWith(caches.match(req).then(hit=>hit||fetch(req).then(r=>{if(r&&(r.ok||r.type==='opaque')){const cp=r.clone();caches.open(VERSION).then(c=>c.put(req,cp));}return r;})));
   }
 });
