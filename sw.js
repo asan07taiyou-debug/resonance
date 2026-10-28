@@ -1,5 +1,5 @@
 // ソウルアリーナ：オフライン対応用サービスワーカー
-const VERSION='resonance-v0.81';
+const VERSION='resonance-v0.82';
 const ICON_V='0.68'; // アイコンを変えたら、この数字と index.html・manifest.webmanifest の ?v= をそろえて上げる
 const CORE=['./','./index.html','./manifest.webmanifest',
   './icon-192.png?v='+ICON_V,'./icon-512.png?v='+ICON_V,'./icon-maskable-512.png?v='+ICON_V,'./apple-touch-icon.png?v='+ICON_V];
